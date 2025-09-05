@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Project Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Project description" />
+    <link rel="icon" type="image/png" href="../assets/css/style.css" />
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&amp;display=swap" rel="stylesheet">
+    <!-- Font Awesome (for social icons) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+    <!-- PrismJS for code highlighting (optional) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism.min.css" rel="stylesheet" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        :root {
+            --ghost-accent-color: #72c7ff;
+            --font-family: 'Poppins', sans-serif;
+            --type-sans-serif: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            --background-primary: #ffffff;
+            --background-secondary: #ffffff;
+            --color-brand: var(--ghost-accent-color);
+            --color-text-primary: #222129;
+            --color-text-secondary: #222129;
+            --color-border: var(--color-brand);
+        }
+
+        body {
+            font-family: var(--type-sans-serif);
+            background: var(--background-primary);
+            color: var(--color-text-primary);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2em 1em;
+        }
+
+        header,
+        footer {
+            text-align: center;
+            padding: 2em 0 1em 0;
+        }
+
+        .logo img {
+            height: 48px;
+            border-radius: 8px;
+        }
+
+        nav {
+            margin: 1em 0;
+        }
+
+        nav a {
+            color: #000;
+            text-decoration: none;
+            font-weight: 700;
+            margin: 0 1em;
+            font-size: 1.1em;
+        }
+
+        nav a:hover {
+            color: var(--ghost-accent-color);
+        }
+
+        .project-cover {
+            width: 100%;
+            max-width: 700px;
+            margin: 2em auto 1em auto;
+            display: block;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(50, 50, 93, 0.08);
+            border: 1px solid #E5EFF5;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-weight: 700;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            line-height: 1.1;
+        }
+
+        h2 {
+            font-size: 2em;
+            line-height: 1.2;
+        }
+
+        h3 {
+            font-size: 1.4em;
+            line-height: 1.3;
+        }
+
+        .meta {
+            color: var(--color-text-secondary);
+            font-size: 0.95em;
+            margin-bottom: 1em;
+        }
+
+        .tags {
+            margin: 2em 0 1em 0;
+        }
+
+        .tags a {
+            display: inline-block;
+            background: var(--ghost-accent-color);
+            color: #000;
+            border-radius: 16px;
+            font-weight: 700;
+            border: 0;
+            padding: 0.5em 1em;
+            margin: 0 0.5em 0.5em 0;
+            text-decoration: none;
+            font-size: 0.95em;
+        }
+
+        .tags a:hover {
+            background: #b3e6ff;
+        }
+
+        .content img,
+        .content video {
+            max-width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(3, 27, 78, 0.05);
+            border: 1px solid #E5EFF5;
+            margin: 1.5em 0;
+        }
+
+        pre,
+        code {
+            font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
+            background: #f5f7fa;
+            border-radius: 8px;
+            padding: 0.2em 0.5em;
+            color: #343f44;
+            font-size: 1em;
+        }
+
+        pre {
+            padding: 1em;
+            overflow-x: auto;
+            margin: 1.5em 0;
+        }
+
+        .social {
+            margin: 2em 0 1em 0;
+        }
+
+        .social a {
+            color: #222129;
+            margin: 0 0.5em;
+            font-size: 1.5em;
+            text-decoration: none;
+        }
+
+        .social a:hover {
+            color: var(--ghost-accent-color);
+        }
+
+        footer {
+            color: var(--color-text-secondary);
+            font-size: 0.95em;
+            border-top: 1px solid #e5eff5;
+            margin-top: 3em;
+            padding-bottom: 2em;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <a href="/"><img src="../assets/icons/template_icon.png" alt="Logo"></a>
+        </div>
+        <nav>
+            <a href="../../public/home.html">Home</a>
+            <a href="../../public/projects.html">Projects</a>
+            <a href="../../public/about.html">About</a>
+            <a href="../../public/contact.html">Contact</a>
+            <!-- Add more links as needed -->
+        </nav>
+    </header>
+    <main class="container">
+        <h1>Project title</h1>
+        <div class="meta">
+            <span>By <strong>author</strong></span> &middot;
+            <time datetime="2025-01-01">Date</time> &middot;
+            <!--<span>10 min read</span>-->
+        </div>
+        <img class="project-cover" src="../assets/images/template_cover.jpg" alt="Project Cover Image" />
+
+        <!--
+    <div class="tags">
+      <a href="/tags/robotics.html">Robotics</a>
+      <a href="/tags/build.html">Build</a>
+      <a href="/tags/coding.html">Coding</a>
+    </div>
+    -->
+
+        <section class="content">
+            <h2>Introduction</h2>
+            <p>
+                This is a template for a new project page. Replace this text with your project introduction.
+            </p>
+            <h2>Project Overview</h2>
+            <p>
+                Describe your project here. You can add images, code snippets, and more.
+            </p>
+            <img src="../assets/images/template_example_1.jpg" alt="Example Image" />
+            <h3>Features</h3>
+            <ul>
+                <li>Feature one</li>
+                <li>Feature two</li>
+                <li>Feature three</li>
+            </ul>
+            <h2>Gallery</h2>
+            <img src="../assets/images/template_example_2.jpg" alt="Gallery Image" />
+            <h2>Youtube videos</h2>
+            <div style="max-width: 560px; margin: 2em auto;">
+            <iframe
+                width="560"
+                height="315"
+                src="https://www.youtube.com/embed/msuydRaIWuU"
+                title="YouTube video player"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+                referrerpolicy="strict-origin-when-cross-origin"
+                style="border-radius: 16px; box-shadow: 0 4px 6px rgba(3,27,78,0.05); width: 100%; max-width: 100%;"
+            ></iframe>
+            </div>
+            <h2>Code Example</h2>
+            <pre><code class="language-python">
+def hello():
+    print("Hello, world!")
+      </code></pre>
+            <h2>Conclusion</h2>
+            <p>
+                Summarize your project and invite readers to check out your other work.
+            </p>
+        </section>
+        <div class="social">
+            <a href="https://github.com/yourusername" target="_blank" title="GitHub"><i class="fa fa-github"></i></a>
+            <a href="https://linkedin.com/in/yourusername" target="_blank" title="LinkedIn"><i
+                    class="fa fa-linkedin"></i></a>
+            <!-- Add more social icons as needed -->
+        </div>
+    </main>
+    <footer>
+        &copy; 2025 Your Name. All rights reserved.
+    </footer>
+    <!-- PrismJS for code highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/prism.min.js"></script>
+    <!-- Custom JS (optional) -->
+    <script src="../assets/js/app.js"></script>
+</body>
+
+</html>
