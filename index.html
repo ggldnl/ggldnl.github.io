@@ -1,37 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About Me - ggldnl</title>
-  <link rel="stylesheet" href="main/assets/css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio</title>
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
+
 <body>
-  <header>
-    <h1>Welcome to My Website</h1>
+
+    <!-- Navigation -->
     <nav>
-      <a href="projects.html">Projects</a> |
-      <a href="about.html">About</a> |
-      <a href="contact.html">Contact</a>
+        <div class="nav-container">
+            <a href="#" class="logo">Portfolio</a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="projects.html">Projects</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </div>
     </nav>
-  </header>
 
-  <main>
-    <section>
-      <h2>About Me</h2>
-      <p>
-        Hi, I’m Daniel 👋.  
-        This is my personal website where I share my projects, research, and interests.
-      </p>
-      <p>
-        You can check out my projects here:  
-        <a href="projects.html">View Projects</a>
-      </p>
-    </section>
-  </main>
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero">
+                    <div class="hero-image">
+                        Your Photo Here
+                    </div>
+                    <div class="hero-content">
+                        <h1>Your Name</h1>
+                        <p>I'm a passionate robotics engineering undergraduate.</p>
+                        <!-- <p class="subtitle">Building the future, one precise movement at a time.</p> -->
+                    </div>
+                </div>
+            </div>
+        </section>
 
-  <footer>
-    <p>&copy; 2025 Daniel</p>
-  </footer>
+        <!-- Projects Section -->
+        <section id="projects" class="projects">
+            <div class="container">
+                <h2 class="section-title">Project highlights</h2>
+
+                <!-- Project 1 -->
+                <div class="project-card">
+                    <img src="projects/differential_drive/images/preview.jpg" alt="Differential drive robot"
+                        class="project-image">
+                    <div class="project-content">
+                        <div class="project-date">07 Sept 2025</div>
+                        <h3 class="project-title">Differential Drive Robot</h3>
+                        <p class="project-description">Questa preview parla del motivo per cui ho deciso di costruire
+                            questo robot e di cosa ne sto facendo della mia vita</p>
+                        <div class="project-tags">
+                            <span class="tag">Control</span>
+                            <span class="tag">ROS</span>
+                            <span class="tag">PCB</span>
+                        </div>
+                        <!-- <div class="read-time">13 min read</div> -->
+                    </div>
+                </div>
+
+                <!-- Project 2 -->
+                <div class="project-card">
+                    <img src="projects/scara/images/preview.jpg" alt="Differential drive robot" class="project-image">
+                    <div class="project-content">
+                        <div class="project-date">08 Apr 2025</div>
+                        <h3 class="project-title">SCARA Robotic Arm</h3>
+                        <p class="project-description">For the past year or so I have been working on a SCARA robotic
+                            arm with the goal to replicate the mechanics and kinematics of commercial SCARA arms as
+                            close as possible.</p>
+                        <div class="project-tags">
+                            <span class="tag">Robot arm</span>
+                            <span class="tag">Coding</span>
+                        </div>
+                        <!-- <div class="read-time">12 min read</div> -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="contact">
+            <div class="container">
+                <h2>Get In Touch</h2>
+                <p>Interested in collaborating or improving my designs? I'd love to hear from you.</p>
+                <div class="contact-info">
+                    <a href="mailto:danielgigliotti99.dg@gmail.com" class="contact-item">Email</a>
+                    <a href="https://linkedin.com/in/daniel-gigliotti-989197195" class="contact-item">LinkedIn</a>
+                    <a href="https://github.com/ggldnl" class="contact-item">GitHub</a>
+                </div>
+            </div>
+        </section>
+    </main>
 </body>
+
 </html>
