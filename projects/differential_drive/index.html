@@ -21,112 +21,244 @@
     </div>
   </nav>
 
+  <!-- Table of Contents -->
+  <aside class="toc">
+    <ul>
+      <li><a href="#overview" class="toc-link">Project Overview</a></li>
+      <li><a href="#hardware" class="toc-link">Hardware</a></li>
+      <li><a href="#control" class="toc-link">Control</a></li>
+      <li><a href="#software" class="toc-link">Software</a></li>
+      <li><a href="#testing" class="toc-link">Testing and Results</a></li>
+
+    </ul>
+  </aside>
+
   <!-- Main Content -->
   <main>
     <div class="container">
 
       <!-- Project Header -->
       <header class="project-header">
-        <div class="project-date">September 7, 2025</div>
+        <div class="project-date">September 7, 2024</div>
         <h1 class="project-title">Differential Drive Robot</h1>
-        <p class="project-subtitle">Building a precision mobile robot platform with ROS integration and custom PCB
-          design</p>
         <div class="project-tags">
-          <span class="tag">Control</span>
+          <span class="tag">Mobile robotics</span>
+          <span class="tag">Control systems</span>
           <span class="tag">ROS</span>
-          <span class="tag">PCB</span>
-          <span class="tag">Robotics</span>
         </div>
       </header>
 
+      <div class="media-container">
+        <img src="images/preview.jpg" alt="Differential Drive Robot" class="article-image">
+        <p class="image-caption">The completed differential drive robot</p>
+      </div>
+
       <!-- Article Content -->
       <article class="article-content">
-        <p>This project began as an exploration into mobile robotics and has evolved into a comprehensive study of
-          control systems, embedded programming, and mechanical design. The differential drive robot represents the
-          intersection of theoretical knowledge and practical engineering challenges.</p>
 
-        <h2>Project Overview</h2>
-        <p>The goal was to create a robust mobile robot platform that could serve as a foundation for more complex
-          autonomous navigation projects. Starting with basic differential drive mechanics, the project expanded to
-          include custom electronics, sensor integration, and ROS-based control systems.</p>
+        <h2 id="overview">Project Overview</h2>
+        <p>
+          Being a robotics engineering student, I found myself taking a course in Autonomous and Mobile Robotics, which
+          dealt with `planning and control methods for achieving mobility and autonomy in mobile robots`. I've always
+          been a practical learner and I knew I had to build a robot to really get into the nuts and bolts and to make
+          sense of what I was hearing in class.
+        </p>
 
-        <div class="media-container">
-          <img src="https://via.placeholder.com/800x450/f5f5f5/999999?text=Robot+Assembly+Image"
-            alt="Differential drive robot assembly" class="article-image">
-          <p class="image-caption">The completed differential drive robot showing the main chassis and sensor array</p>
-        </div>
+        <p>
+          I decided to go for the simplest mobile robot I could think of that is still of practical utility: a
+          differential drive robot. It follows the same kinematic model as a unicycle, which is the simplest model that
+          captures meaningful mobility, but it doesn't need additional control to stay upright.
+        </p>
 
-        <h2>Design Process</h2>
-        <p>The mechanical design focused on creating a stable platform while maintaining flexibility for future
-          modifications. Key considerations included:</p>
+        <p>
+          Some other aspects I wanted to explore were:
+        </p>
 
         <ul>
-          <li>Optimal wheel base for stability and maneuverability</li>
-          <li>Motor selection based on torque and speed requirements</li>
-          <li>Modular sensor mounting system</li>
-          <li>Cable management and accessibility</li>
+          <li>
+            I wanted it to be a template for future mobile robots — something modular and easy to upgrade in all of its
+            parts. What if I want to swap the motors for something more powerful, try different encoders or even use a
+            different chassis? I designed and built it so that every component could be swapped or upgraded without
+            having
+            to start over and I kept this principle in mind even when writing the software.
+          </li>
+          <li>
+            I remember another professor, in a different course, mentioning the fact that good robot design often
+            involves two levels of control: a high-level running heavy but slow stuff — planning, algorithms,
+            communication —
+            and a low-level stage dealing with motor control, sensor reading and everything that needs to happen in
+            near-real time. I wanted to explore this architecture in practice, so my robot uses a Raspberry
+            Pi
+            for the high-level logic (running ROS nodes, handling communication) and an Arduino for the low-level tasks
+            (keeping the wheels spinning at the right speed, reading encoders, running the control loop).
+          </li>
+          <li>
+            I wanted to experiment the low-level motor control itself. Two motors from the same manufacturer and even
+            from the same batch can behave slightly differently — one may spin faster than the other under the same
+            voltage.
+            Without compensation, that can ruin the trajectory of the robot. The solution is to add a feedback
+            controller and
+            I chose to implement a PID controller so that, regardless of small hardware differences, the robot could
+            move accurately.
+          </li>
         </ul>
 
-        <h3>Electronics and PCB Design</h3>
-        <p>One of the most challenging aspects was designing a custom PCB to handle all the robot's electronic needs.
-          This included motor drivers, sensor interfaces, and communication protocols.</p>
+        <p>
+          This post provides an overview of the project, showing the design process from start to finish.
+        </p>
+
+        <h2 id="hardware">Hardware</h2>
+
+        The circuit is very simple.
 
         <div class="media-container">
-          <img src="https://via.placeholder.com/600x400/f5f5f5/999999?text=PCB+Design+Schematic"
-            alt="Custom PCB schematic" class="article-image">
-          <p class="image-caption">Custom PCB schematic showing motor driver circuits and sensor interfaces</p>
+          <img src="images/circuit_diagram.png" alt="Circuit diagram" class="article-image">
+          <p class="image-caption">Circuit diagram</p>
         </div>
 
-        <h2>Software Implementation</h2>
-        <p>The software stack was built around ROS (Robot Operating System), providing a robust framework for sensor
-          data processing, motion control, and future autonomous navigation capabilities.</p>
+        <div class="article-warning">
+          I should've used some diodes to prevent current from flowing backwards into the power supply.
+          This happens when, for example, the arduino is being programmed. The UBEC should include
+          some kind of protection but I'm not sure about that, I found very little information
+          about it.
+        </div>
 
-        <blockquote>
-          "The integration of ROS allowed for rapid prototyping of control algorithms and provided a solid foundation
-          for expanding the robot's capabilities."
-        </blockquote>
+        <ul>
+          <li>
+            An Arduino Nano handles the low level stuff (controls the motors, reads the encoders and sensors, ...).
+          </li>
+          <li>
+            A raspberry pi zero orchestrates everything. It will receive messages from other ROS nodes and command the
+            Arduino to do something.
+          </li>
+          <li>
+            The little black square is a board featuring a DRV8833 h-bridge. An h-bridge allows a DC motor to be driven
+            in both forward and reverse directions by switching the polarity of the voltage applied to the motor. The DRV8833 
+            in particular supports variable speed both formward and backwards when a PWM signal is used.
+          </li>
+          <li>
+            The motors I chose are N20 DC motors. They are rated for 60RPM at 6V. They have a two-phase magnetic encoder each
+            that allows you to compute both the direction and the velocity in which the motor is spinning.
+          </li>
+          <li>
+            The two resistors are necessary to make the Arduino and Raspberry talk to each other. The UART is a common serial 
+            communication protocol that uses two pins, RX (receive data pin) and TX (transmit data pin), along with VCC and GND. 
+            The GND is shared but we need to pay attention to the VCC. The Arduino uses 5V logic so we'll need the two resistors 
+            to implement a voltage divider that will bring the voltage on its pins down to 3.3V.
+          </li>
+          <li>
+            In the schematics you can notice I reserved two 4-pin slots, one with the 5V, GND, SDA, SCL pins and another one with pins from A0 to A3.
+            This way we can interface with I2C devices (SDA, SCL) and, with pins A0 to A3, with a shift register. I specifically thought about this 
+            because one of the things I wanted to experiment with was integrating ToF sensors. The sensors I had work with I2C but the problem is 
+            that each of them has the same I2C address. In order to use more than one of them we need to, in turn, enable it (XShut pin), 
+            change address and disable it. A shift register would have been just what we needed.
+          </li>
+        </ul>
 
-        <h3>Control System</h3>
-        <p>The control system implements a PID controller for precise motion control. The differential drive kinematics
-          were carefully modeled to ensure accurate positioning and smooth operation.</p>
+        <p>
+          Other components are:
+        </p>
+        <ul>
+          <li>
+            The Power Supply Unit, the sketchiest of the parts I've used since I did not find much about it. It's a <a href="https://it.aliexpress.com/item/1005007467083035.html?spm=a2g0o.order_list.order_list_main.5.65323696ndnfoV&gatewayAdapt=glo2ita"> ZMR 8A Dual BEC</a> 
+            I believe, I ordered it from aliexpress for a few bucks. I took it because it features two independent outputs with a
+            voltage selector. This way we can power the motors at 6V and the other electronics at 5V. I had to remove the top
+            cover and the outer insulation film and to replace the connector.
+          </li>
+          <li>
+            The battery, a 2P 500mAh Lipo. These kind of batteries are usually found in RC planes and cars. 
+          </li>
+        </ul>
+
+        <p>
+          After prototyping I decided to design a PCB and mount everything on it. This way, I didn't have to deal with
+          messy cables all around and I was able to reduce everything to a disc with a 10 cm diameter.
+        </p>
+
+        <div class="media-row">
+          <div class="media-container">
+            <img src="images/PCB.png" alt="PCB" class="article-image">
+            <p class="image-caption">PCB</p>
+          </div>
+
+          <div class="media-container">
+            <img src="images/manufactured_PCB.jpg" alt="Manufactured PCB" class="article-image">
+            <p class="image-caption">Manufactured PCB</p>
+          </div>
+        </div>
+
+        <div class="article-note">
+          Note that the manufactured PCB in the image comes from a previous design.
+          Nothing has changed with the electronics but I added a few mounting holes and the caster wheel to the
+          silkscreen.
+        </div>
+
+        <p>
+          I printed the supports in PLA (Matte black from Bambulab) and the wheels in TPU to add extra grippyness
+          even though it wasn't as much as I hoped for. I used M2 heat set inserts and screws to
+          mount everything. The wheels are just press fitted and I used an M3 washer on each to separate them
+          from the motor. Mounting the batteries is always tricky. I often use Velcro to hold them in place.
+          The assembly is overall so trivial that I won't get too much into details.
+        </p>
+
+        <p>
+          Another aspect worth mentioning is the caster wheel. I used a simple metal ball that I had lying around
+          (who remembers Geomag?) with a 10mm diameter and I printed a mount that allows it to rotate more or less
+          freely.
+        </p>
+
+        <div class="media-container">
+          <img src="images/caster_wheel.jpg" alt="Caster wheel" class="article-image">
+          <p class="image-caption">Caster wheel</p>
+        </div>
+
+        <p>
+          You can find everything you will need to build the robot on this repository:
+        </p>
+
+        <a class="link-banner" href="https://github.com/ggldnl/Differential-Drive-Hardware" target="_blank">
+          <div class="banner-content">
+            <div class="banner-title">ggldnl / Differential-Drive-Hardware</div>
+            <div class="banner-description">Repository containing gerber, BoM and stl/3mf files for my Differential
+              Drive robot.</div>
+            <!-- <div class="banner-meta">GitHub • Open Source</div> -->
+          </div>
+          <div class="banner-thumb">
+            <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+              alt="Project github thumbnail">
+          </div>
+        </a>
+
+        <p>
+          In case you have a BambuLab printer, the projects is also hosted on Makerworld:
+        </p>
+
+        <a class="link-banner" href="https://makerworld.com/en/models/572256-scara" target="_blank">
+          <div class="banner-content">
+            <div class="banner-title">Differential Drive robot</div>
+            <div class="banner-description">Makerworld Differential Drive robot project card.</div>
+          </div>
+          <div class="banner-thumb">
+            <img src="images/makerworld_thumbnail.png" alt="Project makerworld thumbnail">
+          </div>
+        </a>
+
+        <h2 id="control">Control</h2>
+
+        <h2 id="software">Software</h2>
+
+        This is where I had the most fun.
+
+        <h2 id="testing">Testing and Results</h2>
 
         <div class="video-container">
-          <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Robot demonstration video"
+          <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Robot with and without control, comparison"
             allowfullscreen></iframe>
         </div>
-
-        <h2>Testing and Results</h2>
-        <p>Extensive testing revealed the robot's capabilities and limitations. The platform successfully demonstrated
-          precise motion control, sensor data acquisition, and reliable wireless communication.</p>
-
-        <div class="media-container">
-          <img src="https://via.placeholder.com/700x400/f5f5f5/999999?text=Test+Results+Graph"
-            alt="Performance test results" class="article-image">
-          <p class="image-caption">Motion accuracy test results showing position error over time</p>
-        </div>
-
-        <h2>Future Improvements</h2>
-        <p>While the current iteration meets the project goals, several enhancements are planned:</p>
-
-        <ol>
-          <li>Implementation of SLAM capabilities for autonomous mapping</li>
-          <li>Integration of computer vision for object detection</li>
-          <li>Development of path planning algorithms</li>
-          <li>Addition of robotic arm for manipulation tasks</li>
-        </ol>
-
-        <h2>Conclusion</h2>
-        <p>This project provided valuable insights into the complexities of mobile robot design and implementation. From
-          mechanical engineering challenges to software integration, each aspect contributed to a deeper understanding
-          of robotics systems. The platform now serves as a testbed for exploring advanced autonomous navigation
-          concepts and continues to evolve with new capabilities.</p>
-
-        <p>The experience reinforced the importance of iterative design, thorough testing, and the value of open-source
-          tools like ROS in robotics development. Most importantly, it demonstrated how theoretical knowledge transforms
-          into practical engineering solutions through persistent experimentation and refinement.</p>
       </article>
     </div>
   </main>
+  <script src="../../assets/js/scripts.js"></script>
 </body>
 
 </html>
