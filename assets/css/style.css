@@ -587,12 +587,12 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f0f0f0;
+    background: #f0f0f000;
 }
 
 .banner-thumb img {
-    width: 100%;
-    height: auto;
+    height: 100%;
+    width: auto;
     border-radius: 8px;
     object-fit: cover;
 }
@@ -632,4 +632,78 @@ main {
     content: "⚠️";
     font-size: 20px;
     flex-shrink: 0;
+}
+
+/* Code block container */
+.article-content pre {
+    background-color: #f4f4f4;
+    color: #070707;
+    padding: 20px;
+    border-radius: 12px;  /* match your site’s corner radius */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    overflow-x: auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 24px 0;
+}
+
+/* Remove default extra spacing from code inside pre */
+.article-content pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+}
+
+/* Inline code */
+.article-content code {
+    background-color: #f4f4f4;
+    color: #d6336c;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95em;
+}
+
+/* Optional syntax highlighting */
+.token.keyword,
+.token.builtin,
+.token.selector {
+    color: #d6336c;
+}
+
+.token.function {
+    color: #0066cc;
+}
+
+.token.string {
+    color: #22863a;
+}
+
+.token.comment {
+    color: #6a737d;
+    font-style: italic;
+}
+
+.token.number {
+    color: #e36209;
+}
+
+/* Copy button */
+.copy-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent; /* transparent background */
+    border: none;             /* no border */
+    padding: 0;               /* no extra padding */
+    font-size: 20px;          /* emoji size */
+    cursor: pointer;
+    line-height: 1;
+    transition: transform 0.1s ease; /* optional hover effect */
+}
+
+.copy-btn:hover {
+    transform: scale(1.5); /* optional: make emoji slightly bigger on hover */
+    color: #22863a;        /* optional: change color on hover */
 }

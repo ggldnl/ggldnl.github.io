@@ -5,7 +5,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Portfolio - Differential Drive</title>
+
   <link rel="stylesheet" href="../../assets/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs/themes/prism.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-clike.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-c.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-cpp.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-python.min.js"></script>
 </head>
 
 <body>
@@ -60,26 +68,27 @@
 
         <h2 id="overview">Project Overview</h2>
         <p>
-          Being a robotics engineering student, I found myself taking a course in Autonomous and Mobile Robotics, which
-          dealt with `planning and control methods for achieving mobility and autonomy in mobile robots`. I've always
-          been a practical learner and I knew I had to build a robot to really get into the nuts and bolts and to make
-          sense of what I was hearing in class.
+          I found myself taking a class in Autonomous and Mobile Robotics, which dealt with 
+          `planning and control methods for achieving mobility and autonomy in mobile robots`. 
+          I've always been a practical learner and I knew I had to build a robot to really get 
+          into the nuts and bolts and to make sense of what I was studying.
         </p>
 
         <p>
           I decided to go for the simplest mobile robot I could think of that is still of practical utility: a
-          differential drive robot. It follows the same kinematic model as a unicycle, which is the simplest model that
-          captures meaningful mobility, but it doesn't need additional control to stay upright.
+          differential drive robot. It follows the same kinematic model as a unicycle, which is the simplest model 
+          that captures meaningful mobility, but it doesn't need additional control to stay upright, having a 
+          three-point contact with the ground.
         </p>
 
         <p>
-          Some other aspects I wanted to explore were:
+          Other considerations:
         </p>
 
         <ul>
           <li>
             I wanted it to be a template for future mobile robots — something modular and easy to upgrade in all of its
-            parts. What if I want to swap the motors for something more powerful, try different encoders or even use a
+            parts. What if I want to swap the motors for something more powerful, try different encoders or use a
             different chassis? I designed and built it so that every component could be swapped or upgraded without
             having
             to start over and I kept this principle in mind even when writing the software.
@@ -87,31 +96,27 @@
           <li>
             I remember another professor, in a different course, mentioning the fact that good robot design often
             involves two levels of control: a high-level running heavy but slow stuff — planning, algorithms,
-            communication —
-            and a low-level stage dealing with motor control, sensor reading and everything that needs to happen in
-            near-real time. I wanted to explore this architecture in practice, so my robot uses a Raspberry
-            Pi
-            for the high-level logic (running ROS nodes, handling communication) and an Arduino for the low-level tasks
-            (keeping the wheels spinning at the right speed, reading encoders, running the control loop).
+            communication — and a low-level stage dealing with motor control, sensor reading and everything that needs 
+            to happen in near-real time. I wanted to explore this architecture in practice, so my robot uses a 
+            Raspberry Pi for the high-level logic (running ROS nodes) and an Arduino for the low-level tasks
+            (keeping the wheels spinning at the right speed, reading encoders and sensors...).
           </li>
           <li>
-            I wanted to experiment the low-level motor control itself. Two motors from the same manufacturer and even
-            from the same batch can behave slightly differently — one may spin faster than the other under the same
-            voltage.
-            Without compensation, that can ruin the trajectory of the robot. The solution is to add a feedback
-            controller and
-            I chose to implement a PID controller so that, regardless of small hardware differences, the robot could
-            move accurately.
+            When designing mobile robots, a central challenge lies in developing control strategies that can deliver 
+            reliable and predictable motion despite hardware imperfections. Even two motors from the same manufacturer 
+            and production batch may exhibit slightly different behaviors — for example, one might rotate faster than 
+            the other under the same voltage input due to small variations in manufacturing. Furthermore, 
+            the presence of friction in gears and wheel-ground interaction can introduce disturbances that degrade 
+            motion accuracy. Purely open-loop control is insufficient and for this reason I wanted to explore 
+            robust feedback control strategies.
           </li>
         </ul>
 
         <p>
-          This post provides an overview of the project, showing the design process from start to finish.
+          This article provides an overview of the project, showing the design process from start to finish.
         </p>
 
         <h2 id="hardware">Hardware</h2>
-
-        The circuit is very simple.
 
         <div class="media-container">
           <img src="images/circuit_diagram.png" alt="Circuit diagram" class="article-image">
@@ -125,35 +130,52 @@
           about it.
         </div>
 
+        <p>
+          The circuit is very simple:
+        </p>
+
         <ul>
           <li>
-            An Arduino Nano handles the low level stuff (controls the motors, reads the encoders and sensors, ...).
+            An Arduino Nano handles the low level stuff (controlling the motors, reading encoders and sensors, ...).
           </li>
           <li>
-            A raspberry pi zero orchestrates everything. It will receive messages from other ROS nodes and command the
+            A Raspberry Pi Zero 2 orchestrates everything. It will receive messages from other ROS nodes and command the
             Arduino to do something.
           </li>
           <li>
-            The little black square is a board featuring a DRV8833 h-bridge. An h-bridge allows a DC motor to be driven
-            in both forward and reverse directions by switching the polarity of the voltage applied to the motor. The DRV8833 
-            in particular supports variable speed both formward and backwards when a PWM signal is used.
+            The DRV8833 is an h-bridge. An h-bridge allows a DC motor to be driven in both forward and reverse directions 
+            by switching the polarity of the voltage applied to the motor. The DRV8833 in particular supports variable 
+            speed both formward and backwards when a PWM signal is used.
           </li>
           <li>
-            The motors I chose are N20 DC motors. They are rated for 60RPM at 6V. They have a two-phase magnetic encoder each
-            that allows you to compute both the direction and the velocity in which the motor is spinning.
+            I used two N20 DC motors, rated for 60RPM at 6V. They have a gearbox and a two-phase magnetic encoder.
+            This kind of encoder allows you to compute both the direction and the velocity the motor is spinning, 
+            even though we will use just one phase (more on this later).
           </li>
           <li>
-            The two resistors are necessary to make the Arduino and Raspberry talk to each other. The UART is a common serial 
-            communication protocol that uses two pins, RX (receive data pin) and TX (transmit data pin), along with VCC and GND. 
-            The GND is shared but we need to pay attention to the VCC. The Arduino uses 5V logic so we'll need the two resistors 
-            to implement a voltage divider that will bring the voltage on its pins down to 3.3V.
+            UART is used to let the Arduino (low level) and Raspberry (high level) send messages back and forth. The UART is a common 
+            serial communication protocol that uses pins VCC, GND, RX (receive data pin) and TX (transmit data pin). 
+            The problem in our case is that the Arduino uses 5V logic while the Raspberry Pi uses 3.3V logic. 
+            We need the two resistors R1 and R2 to implement a voltage divider that will bring the voltage 
+            from the two devices on the same level.
           </li>
-          <li>
+        </ul>
+
+        <p>
             In the schematics you can notice I reserved two 4-pin slots, one with the 5V, GND, SDA, SCL pins and another one with pins from A0 to A3.
-            This way we can interface with I2C devices (SDA, SCL) and, with pins A0 to A3, with a shift register. I specifically thought about this 
-            because one of the things I wanted to experiment with was integrating ToF sensors. The sensors I had work with I2C but the problem is 
-            that each of them has the same I2C address. In order to use more than one of them we need to, in turn, enable it (XShut pin), 
-            change address and disable it. A shift register would have been just what we needed.
+        </p>
+        <ul>
+          <li>
+            The first slot is used to interface with I2C devices (SDA, SCL) like for example an IMU.
+          </li>
+          <li>
+            Pins A0 to A3 can be used for other purposes. In particular, they can be used to control a shift register.
+            I specifically thought about a shift register because one of the things I wanted to experiment with was integrating ToF sensors. 
+            The sensors I had work with I2C but the problem is that each of them has the same I2C address. In order to use one of them 
+            we need to, enable it (pulling the enable pin high), change address and disable it (pulling the enable pin low) at startup. 
+            A shift register would have been just what we need as it lets us control up to 8 new digital outputs. I successfully tested
+            this idea to drive 8 LEDs and I wrote a simple library to interface with the shift register, I'll include it on the github 
+            repository even though it is not currently used in the code.
           </li>
         </ul>
 
@@ -162,10 +184,10 @@
         </p>
         <ul>
           <li>
-            The Power Supply Unit, the sketchiest of the parts I've used since I did not find much about it. It's a <a href="https://it.aliexpress.com/item/1005007467083035.html?spm=a2g0o.order_list.order_list_main.5.65323696ndnfoV&gatewayAdapt=glo2ita"> ZMR 8A Dual BEC</a> 
+            The Power Supply Unit, the sketchiest of the parts I've used since I didn't find much information about it. It's a <a href="https://it.aliexpress.com/item/1005007467083035.html?spm=a2g0o.order_list.order_list_main.5.65323696ndnfoV&gatewayAdapt=glo2ita"> ZMR 8A Dual BEC</a> 
             I believe, I ordered it from aliexpress for a few bucks. I took it because it features two independent outputs with a
             voltage selector. This way we can power the motors at 6V and the other electronics at 5V. I had to remove the top
-            cover and the outer insulation film and to replace the connector.
+            cover and the outer insulation film and to replace the connector and the switch.
           </li>
           <li>
             The battery, a 2P 500mAh Lipo. These kind of batteries are usually found in RC planes and cars. 
@@ -173,8 +195,7 @@
         </ul>
 
         <p>
-          After prototyping I decided to design a PCB and mount everything on it. This way, I didn't have to deal with
-          messy cables all around and I was able to reduce everything to a disc with a 10 cm diameter.
+          After prototyping I decided to design a PCB. I managed to fit everything onto a disc with a diameter of 10 cm.
         </p>
 
         <div class="media-row">
@@ -196,11 +217,10 @@
         </div>
 
         <p>
-          I printed the supports in PLA (Matte black from Bambulab) and the wheels in TPU to add extra grippyness
+          I printed the supports in Matte black PLA from Bambulab and the wheels in TPU to add extra grippyness
           even though it wasn't as much as I hoped for. I used M2 heat set inserts and screws to
           mount everything. The wheels are just press fitted and I used an M3 washer on each to separate them
-          from the motor. Mounting the batteries is always tricky. I often use Velcro to hold them in place.
-          The assembly is overall so trivial that I won't get too much into details.
+          from the mounting bracket. Mounting the batteries is always tricky. I often use Velcro to hold them in place.
         </p>
 
         <p>
@@ -232,6 +252,21 @@
         </a>
 
         <p>
+          Below is an exploded view showing the printed parts on the PCB, along with an image of the electronics mounted on it.
+        </p>
+
+        <div class="media-container">
+          <img src="images/assembly.gif" alt="Printed parts" class="article-image">
+          <p class="image-caption">Printed parts</p>
+        </div>
+
+        <div class="media-container">
+          <img src="images/electronics.png" alt="Electronics" class="article-image">
+          <p class="image-caption">Electronics</p>
+        </div>
+
+        <!--
+        <p>
           In case you have a BambuLab printer, the projects is also hosted on Makerworld:
         </p>
 
@@ -241,22 +276,169 @@
             <div class="banner-description">Makerworld Differential Drive robot project card.</div>
           </div>
           <div class="banner-thumb">
-            <img src="images/makerworld_thumbnail.png" alt="Project makerworld thumbnail">
+            <img src="../../assets/images/makerworld_thumbnail.png" alt="Project makerworld thumbnail">
+          </div>
+        </a>
+        -->
+
+        <h2 id="control">Control theory</h2>
+
+        <p>
+          As anticipated, one of the problems is that no motor is exactly the same and we need to compensate for that.
+          Even if you buy two identical motors, one will always spin a little faster, draw a bit more current, or have 
+          slightly different friction. Add in battery voltage drops, uneven surfaces, and normal wear over time, and 
+          things get worse quickly. We can't just send the same signal to both wheels, the robot will not move straight.
+        </p>
+
+        <p>
+          I’ve always been fascinated by warehouse robots (e.g. <a href="https://www.aboutamazon.com/news/operations/10-years-of-amazon-robotics-how-robots-help-sort-packages-move-product-and-improve-safety"> KIVA/Hercules</a>  
+          used by Amazon) and I can only dream of that level of precision. As far as my understanding goes, industrial 
+          robots don’t just rely on strong (expensive) hardware. They use multiple layers of control systems to keep 
+          the system stable and precise. At least two layers should be used (cascade control): the inner layer make 
+          sure each actuator behaves as it should (for example, a motor really spins at the requested speed), while 
+          the outer layer focus on higher-level goals, like keeping the robot on a straight path or following a 
+          planned trajectory.
+        </p>
+
+        <p>
+          I began by developing the inner control layer and I implemented a PID controller to regulate each wheel. 
+          It's very simple: each controller continuously computes the difference between the desired speed and the 
+          actual speed of the respective wheel (the error), and then calculates a correction to apply to the motor input.
+        </p>
+
+        <p>
+          This correction is formed by combining three components, each scaled by a weight:
+        </p>
+
+        <ul>
+          <li>Proportional (P): reacts directly to the current error (setpoint - measurement).</li>
+          <li>Integral (I): accounts for the accumulated error over time, eliminating steady biases.</li>
+          <li>Derivative (D): anticipates the trend of the error, adding stability and damping.</li>
+        </ul>
+        
+        <p>
+          Now, there are better places where to understand how PID works and how to tune it. 
+          I'll link a great resource I found:
+        </p>
+
+        <a class="link-banner" href="https://blog.mbedded.ninja/programming/general/pid-control/" target="_blank">
+          <div class="banner-content">
+            <div class="banner-title">PID control</div>
+            <div class="banner-description">mbedded.ninja</div>
+          </div>
+          <div class="banner-thumb">
+            <img src="images/mbedded_ninja_thumbnail.jpg" alt="PID control thumbnail">
           </div>
         </a>
 
-        <h2 id="control">Control</h2>
+        <p>
+          On top of the feedback action, I also included a feedforward term to each wheel's PID controller. This provides the corresponding 
+          motor with an input directly based on the desired speed (a baseline estimate of the control signal for a given RPM). Without 
+          feedforward, the motor’s control signal depends only on the error; this means that when a new command arrives and the motor is 
+          off, the error is large and the controller blasts a massive command (near 100%), causing the motor to spin up much faster 
+          than needed and leading to slower convergence to the setpoint velocity.
+        </p>
+
+        <p>
+          Here’s the control architecture of an inner loop. Each wheel has its own identical loop, so both are regulated independently 
+          using the same PID+feedforward structure.
+        </p>
+
+        <div class="media-container">
+          <img src="images/inner_control_loop.jpg" alt="Inner control loop" class="article-image">
+          <p class="image-caption">Inner control loop</p>
+        </div>
+
+        <p>
+          Just by using the inner control loops, with no coordination between the two wheels, I was able to make the robot drive 
+          forward in a straight line:
+        </p>
+
+        <div class="media-container">
+          <img src="images/comparison_inner_control_loop.gif" alt="Robot performaces, with and without inner control loops" class="article-image">
+          <p class="image-caption">Robot performaces, with and without inner control loops</p>
+        </div>
+
+        <p>
+          We can notice two things:
+        </p>
+
+        <ul>
+          <li>The robot goes forward in a straight line but eventually small errors accumulate, causing it to drift off track.</li>
+          <li>The motion is jerky, we can notice a "zig-zag" pattern.</li>
+        </ul>
+
+        <p>
+          That little zig-zag is a classic effect when two wheels are controlled independently. Each wheel’s PID controller only sees 
+          its own noisy measurement and reacts locally, so the corrections happen at slightly different times and magnitudes. On top of that, 
+          encoder quantization and other unwanted effects make the control inputs jumpy. Those small, asynchronous corrections add up as 
+          differential velocity errors, and the result is a wiggly, zig-zag path instead of a perfectly smooth line.
+        </p>
+
+        <p>
+          To fix this, I added an outer control layer.
+          TODO
+        </p>
+
+        <div class="media-container">
+          <img src="images/outer_control_loop.jpg" alt="Outer control loop" class="article-image">
+          <p class="image-caption">Outer control loop</p>
+        </div>
+
+        <p>
+          This was the result:
+        </p>
+
+        <div class="media-container">
+          <img src="images/comparison_outer_control_loop.gif" alt="Robot performaces, outer control loop addition" class="article-image">
+          <p class="image-caption">Robot performaces, outer control loop addition</p>
+        </div>
 
         <h2 id="software">Software</h2>
 
-        This is where I had the most fun.
+        <p>
+          Below I want to discuss the software architecture.
+        </p>
+        
+        <pre><code class="language-cpp">
+// Measure encoder ticks from the last time we checked
+long currentTicks = _encoder.getTicks();
+long tickDelta = currentTicks - _lastTicks;
+_lastTicks = currentTicks;
+
+// Compute signed RPM
+float direction = (_control >= 0) ? 1.0f : -1.0f;
+float ticksPerSec = tickDelta / dt;
+float revPerSec = ticksPerSec / _ticksPerRev;
+float instantRPM = direction * revPerSec * 60.0f;
+        </code></pre>
+
+        <pre><code class="language-cpp">
+// Read linear and angular velocities from UART (format: "linear,angular\n")
+if (Serial.available()) {
+    String input = Serial.readStringUntil('\n');
+    int commaIndex = input.indexOf(',');
+    if (commaIndex > 0) {
+        float linearVel  = input.substring(0, commaIndex).toFloat();
+        float angularVel = input.substring(commaIndex + 1).toFloat();  
+        robot.setVelocity(linearVel, angularVel);
+    }
+}
+        </code></pre>
+
+        <h2 id="improvements">Improvements</h2>
+
+        <p>
+          Many improvements could be done. The first that came to my mind was to add an IMU and use it to [...]
+        </p>
 
         <h2 id="testing">Testing and Results</h2>
 
-        <div class="video-container">
-          <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Robot with and without control, comparison"
-            allowfullscreen></iframe>
-        </div>
+        <p>
+          Overall it was a fun little experiment but what I'm most excited about is that I can now devote myself to more complex 
+          projects reusing what I learned.   
+        </p>
+
       </article>
     </div>
   </main>
