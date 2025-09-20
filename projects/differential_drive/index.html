@@ -365,11 +365,11 @@
 
         <ul>
           <li>The robot goes forward in a straight line but eventually small errors accumulate, causing it to drift off track.</li>
-          <li>The motion is jerky, we can notice a "zig-zag" pattern.</li>
+          <li>It's a bit difficult to see in the gif but the motion is jerky, the robot moves in a "zig-zag" pattern.</li>
         </ul>
 
         <p>
-          That little zig-zag is a classic effect when two wheels are controlled independently. Each wheel’s PID controller only sees 
+          That little zig-zag motion is a classic effect when two wheels are controlled independently. Each wheel’s PID controller only sees 
           its own noisy measurement and reacts locally, so the corrections happen at slightly different times and magnitudes. On top of that, 
           encoder quantization and other unwanted effects make the control inputs jumpy. Those small, asynchronous corrections add up as 
           differential velocity errors, and the result is a wiggly, zig-zag path instead of a perfectly smooth line.
