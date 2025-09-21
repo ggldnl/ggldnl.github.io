@@ -1,29 +1,3 @@
-
-// ToC Highlight logic 
-document.addEventListener("DOMContentLoaded", function () {
-    const sections = document.querySelectorAll("article h2[id]");
-    const tocLinks = document.querySelectorAll(".toc-link");
-
-    const observer = new IntersectionObserver(
-        (entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    // remove active class from all links
-                    tocLinks.forEach(link => link.classList.remove("active"));
-                    // find the link that matches the visible section
-                    const activeLink = document.querySelector(
-                        `.toc a[href="#${entry.target.id}"]`
-                    );
-                    if (activeLink) activeLink.classList.add("active");
-                }
-            });
-        },
-        { threshold: 0.5 } // section must be at least 50% visible
-    );
-
-    sections.forEach(section => observer.observe(section));
-});
-
 // Staggered animation logic
 document.addEventListener("DOMContentLoaded", () => {
   const elements = document.querySelectorAll("body *");
@@ -54,4 +28,44 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     });
+});
+
+// Image zoom functionality
+function initImageZoom() {
+  const zoomableImages = document.querySelectorAll('.article-image');
+  const overlay = document.getElementById('zoomOverlay');
+  const zoomImage = document.getElementById('zoomImage');
+  const closeBtn = document.getElementById('zoomClose');
+
+  zoomableImages.forEach(img => {
+    img.addEventListener('click', function() {
+      zoomImage.src = this.src;
+      zoomImage.alt = this.alt;
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+  });
+
+  function closeZoom() {
+    overlay.classList.remove('active');
+    document.body.style.overflow = 'auto';
+  }
+
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) closeZoom();
+  });
+
+  closeBtn.addEventListener('click', closeZoom);
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('active')) {
+      closeZoom();
+    }
+  });
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  document.body.classList.add('loaded');
+  initImageZoom();
 });

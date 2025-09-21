@@ -59,7 +59,7 @@
       </header>
 
       <div class="media-container">
-        <img src="images/preview.jpg" alt="Differential Drive Robot" class="article-image">
+        <img src="images/preview.jpg" alt="Differential Drive Robot" class="article-image zoomable">
         <p class="image-caption">The completed differential drive robot</p>
       </div>
 
@@ -119,7 +119,7 @@
         <h2 id="hardware">Hardware</h2>
 
         <div class="media-container">
-          <img src="images/circuit_diagram.png" alt="Circuit diagram" class="article-image">
+          <img src="images/circuit_diagram.png" alt="Circuit diagram" class="article-image zoomable">
           <p class="image-caption">Circuit diagram</p>
         </div>
 
@@ -200,12 +200,12 @@
 
         <div class="media-row">
           <div class="media-container">
-            <img src="images/PCB.png" alt="PCB" class="article-image">
+            <img src="images/PCB.png" alt="PCB" class="article-image zoomable">
             <p class="image-caption">PCB</p>
           </div>
 
           <div class="media-container">
-            <img src="images/manufactured_PCB.jpg" alt="Manufactured PCB" class="article-image">
+            <img src="images/manufactured_PCB.jpg" alt="Manufactured PCB" class="article-image zoomable">
             <p class="image-caption">Manufactured PCB</p>
           </div>
         </div>
@@ -230,7 +230,7 @@
         </p>
 
         <div class="media-container">
-          <img src="images/caster_wheel.jpg" alt="Caster wheel" class="article-image">
+          <img src="images/caster_wheel.jpg" alt="Caster wheel" class="article-image zoomable">
           <p class="image-caption">Caster wheel</p>
         </div>
 
@@ -256,12 +256,12 @@
         </p>
 
         <div class="media-container">
-          <img src="images/assembly.gif" alt="Printed parts" class="article-image">
+          <img src="images/assembly.gif" alt="Printed parts" class="article-image zoomable">
           <p class="image-caption">Printed parts</p>
         </div>
 
         <div class="media-container">
-          <img src="images/electronics.png" alt="Electronics" class="article-image">
+          <img src="images/electronics.png" alt="Electronics" class="article-image zoomable">
           <p class="image-caption">Electronics</p>
         </div>
 
@@ -345,7 +345,7 @@
         </p>
 
         <div class="media-container">
-          <img src="images/inner_control_loop.jpg" alt="Inner control loop" class="article-image">
+          <img src="images/inner_control_loop.jpg" alt="Inner control loop" class="article-image zoomable">
           <p class="image-caption">Inner control loop</p>
         </div>
 
@@ -355,7 +355,7 @@
         </p>
 
         <div class="media-container">
-          <img src="images/comparison_inner_control_loop.gif" alt="Robot performaces, with and without inner control loops" class="article-image">
+          <img src="images/comparison_inner_control_loop.gif" alt="Robot performaces, with and without inner control loops" class="article-image zoomable">
           <p class="image-caption">Robot performaces, with and without inner control loops</p>
         </div>
 
@@ -381,7 +381,7 @@
         </p>
 
         <div class="media-container">
-          <img src="images/outer_control_loop.jpg" alt="Outer control loop" class="article-image">
+          <img src="images/outer_control_loop.jpg" alt="Outer control loop" class="article-image zoomable">
           <p class="image-caption">Outer control loop</p>
         </div>
 
@@ -390,7 +390,7 @@
         </p>
 
         <div class="media-container">
-          <img src="images/comparison_outer_control_loop.gif" alt="Robot performaces, outer control loop addition" class="article-image">
+          <img src="images/comparison_outer_control_loop.gif" alt="Robot performaces, outer control loop addition" class="article-image zoomable">
           <p class="image-caption">Robot performaces, outer control loop addition</p>
         </div>
 
@@ -442,7 +442,15 @@ if (Serial.available()) {
       </article>
     </div>
   </main>
+
   <script src="../../assets/js/scripts.js"></script>
+
+  <!-- Zoom overlay -->
+  <div class="zoom-overlay" id="zoomOverlay">
+    <div class="zoom-close" id="zoomClose">&times;</div>
+    <img class="zoom-image" id="zoomImage" src="" alt="">
+  </div>
+
 </body>
 
 </html>
