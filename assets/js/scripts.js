@@ -45,12 +45,14 @@ function initImageZoom() {
       return;
     }
 
+    console.log(`Image zoom initialized with ${zoomableImages.length} images`);
+
     zoomableImages.forEach((img, index) => {
       img.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
         
-        // console.log(`Image ${index + 1} clicked:`, this.src);
+        console.log(`Image ${index + 1} clicked:`, this.src);
         
         zoomImage.src = this.src;
         zoomImage.alt = this.alt;
