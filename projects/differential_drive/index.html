@@ -184,10 +184,11 @@
         </p>
         <ul>
           <li>
-            The Power Supply Unit, the sketchiest of the parts I've used since I didn't find much information about it. It's a <a href="https://it.aliexpress.com/item/1005007467083035.html?spm=a2g0o.order_list.order_list_main.5.65323696ndnfoV&gatewayAdapt=glo2ita"> ZMR 8A Dual BEC</a> 
-            I believe, I ordered it from aliexpress for a few bucks. I took it because it features two independent outputs with a
-            voltage selector. This way we can power the motors at 6V and the other electronics at 5V. I had to remove the top
-            cover and the outer insulation film and to replace the connector and the switch.
+            The Power Supply Unit, a <a href="https://it.aliexpress.com/item/1005007467083035.html?spm=a2g0o.order_list.order_list_main.5.65323696ndnfoV&gatewayAdapt=glo2ita"> ZMR 8A Dual BEC</a>. 
+            I ordered it from Aliexpress for a few bucks. The documentation is very sketchy and I didn't find much on the internet about it. 
+            I took it because it features two independent outputs with a voltage selector. This way we can power the motors at 6V 
+            and the other electronics at 5V. I had to remove the top cover and the outer insulation film and to replace the connector 
+            and the switch.
           </li>
           <li>
             The battery, a 2P 500mAh Lipo. These kind of batteries are usually found in RC planes and cars. 
@@ -234,6 +235,28 @@
           <p class="image-caption">Caster wheel</p>
         </div>
 
+        <!--
+        <p>
+          Below is an exploded view showing the printed parts on the PCB, along with an image of the electronics mounted on it.
+        </p>
+        -->
+
+        <p>
+          This is the exploded view of the chassis:
+        </p>
+
+        <div class="media-container">
+          <img src="images/assembly.gif" alt="chassis" class="article-image zoomable">
+          <p class="image-caption">Chassis</p>
+        </div>
+
+        <!--
+        <div class="media-container">
+          <img src="images/electronics.png" alt="Electronics" class="article-image zoomable">
+          <p class="image-caption">Electronics</p>
+        </div>
+        -->
+
         <p>
           You can find everything you will need to build the robot on this repository:
         </p>
@@ -250,20 +273,6 @@
               alt="Project github thumbnail">
           </div>
         </a>
-
-        <p>
-          Below is an exploded view showing the printed parts on the PCB, along with an image of the electronics mounted on it.
-        </p>
-
-        <div class="media-container">
-          <img src="images/assembly.gif" alt="Printed parts" class="article-image zoomable">
-          <p class="image-caption">Printed parts</p>
-        </div>
-
-        <div class="media-container">
-          <img src="images/electronics.png" alt="Electronics" class="article-image zoomable">
-          <p class="image-caption">Electronics</p>
-        </div>
 
         <!--
         <p>
@@ -294,7 +303,7 @@
           I’ve always been fascinated by warehouse robots (e.g. <a href="https://www.aboutamazon.com/news/operations/10-years-of-amazon-robotics-how-robots-help-sort-packages-move-product-and-improve-safety"> KIVA/Hercules</a>  
           used by Amazon) and I can only dream of that level of precision. As far as my understanding goes, industrial 
           robots don’t just rely on strong (expensive) hardware. They use multiple layers of control systems to keep 
-          the system stable and precise. At least two layers should be used (cascade control): the inner layer make 
+          the motion stable and precise. At least two layers should be used (cascade control): the inner layer make 
           sure each actuator behaves as it should (for example, a motor really spins at the requested speed), while 
           the outer layer focus on higher-level goals, like keeping the robot on a straight path or following a 
           planned trajectory.
@@ -341,7 +350,9 @@
 
         <p>
           Here’s the control architecture of an inner loop. Each wheel has its own identical loop, so both are regulated independently 
-          using the same PID+feedforward structure.
+          using the same PID+feedforward structure. The input is the desired RPM we want the motor to achieve; the controller produces
+          a control signal (also in RPM) that is sent to the motor (dedicated software translates RPM into PWM); the encoder measures
+          the actual RPM the motor is spinning and feeds this back to the controller. 
         </p>
 
         <div class="media-container">
@@ -365,7 +376,7 @@
 
         <ul>
           <li>The robot goes forward in a straight line but eventually small errors accumulate, causing it to drift off track.</li>
-          <li>It's a bit difficult to see in the gif but the motion is jerky, the robot moves in a "zig-zag" pattern.</li>
+          <li>It's a bit difficult to see in the gif but the motion is jerky.</li>
         </ul>
 
         <p>
@@ -377,7 +388,6 @@
 
         <p>
           To fix this, I added an outer control layer.
-          TODO
         </p>
 
         <div class="media-container">
@@ -395,10 +405,6 @@
         </div>
 
         <h2 id="software">Software</h2>
-
-        <p>
-          Below I want to discuss the software architecture.
-        </p>
         
         <pre><code class="language-cpp">
 // Measure encoder ticks from the last time we checked
@@ -432,11 +438,11 @@ if (Serial.available()) {
           Many improvements could be done. The first that came to my mind was to add an IMU and use it to [...]
         </p>
 
-        <h2 id="testing">Testing and Results</h2>
+        <h2 id="testing">Conclusions</h2>
 
         <p>
           Overall it was a fun little experiment but what I'm most excited about is that I can now devote myself to more complex 
-          projects reusing what I learned.   
+          projects reusing what I learned.
         </p>
 
       </article>
