@@ -165,8 +165,7 @@
             An Arduino Nano handles the low level stuff (controlling the motors, reading encoders and sensors, ...).
           </li>
           <li>
-            A Raspberry Pi Zero 2 orchestrates everything. It receives messages from other ROS nodes and commands the
-            Arduino to do something.
+            A Raspberry Pi Zero 2 receives messages from other ROS nodes and commands the Arduino to do something.
           </li>
           <li>
             The DRV8833 is an h-bridge. An h-bridge allows a DC motor to be driven in both forward and reverse
@@ -224,7 +223,7 @@
             and the outer insulation film and to replace the connector and the switch.
           </li>
           <li>
-            The battery, a 2P 500mAh Lipo. These kind of batteries are usually found in RC planes and cars.
+            The battery, a 2S 500mAh Lipo. These kind of batteries are usually found in RC planes and cars.
           </li>
         </ul>
 
@@ -420,7 +419,12 @@
           <p class="image-caption">Inner control loop</p>
         </div>
 
-        <h2 id="software">TODO [Software]</h2>
+        <h2 id="software">Software</h2>
+
+          <p>
+            The Arduino receives commands through UART from the Raspberry, parses them and controls the hardware accordingly.
+            This is the code that handles that part:
+          </p>
 
         <pre><code class="language-cpp">
 // Read linear and angular velocities from UART (format: "linear,angular\n")
@@ -434,6 +438,201 @@ if (Serial.available()) {
     }
 }
         </code></pre>
+
+        <p>
+          The rest of the firmware is structured around a few key components. All are designed to be modular and reusable:
+        </p>
+
+        <ul>
+
+          <li>
+            The <strong>encoder</strong> library provides support for different kinds of encoders:
+            high-resolution (e.g. on motor shaft, before reduction) and low-resolution (e.g. on gearbox output shaft, afer reduction).
+            I'll talk a bit more on this in the following section.
+          </li>
+
+          <li>
+            The <strong>motor</strong> library controls the DRV8833 H-bridge. It exposes methods to coast, brake, and drive the motor 
+            at a given normalized speed (float in range -1 to 1). PWM signals allow speed control.
+
+            <pre><code class="language-cpp">
+const uint8_t motorInA = 5;  // Should be PWM capable
+const uint8_t motorInB = 6;  // Should be PWM capable
+const uint8_t motorEanble = 4;
+
+Motor motor(motorInA, motorInB, motorEnable);
+motor.enable();
+motor.drive(0.8f);
+            </code></pre>
+          </li>
+
+          <li>
+            The <strong>PID</strong> library provides the implementation for a PID controller. 
+            <pre><code class="language-cpp">
+const float kp = 0.1;
+const float ki = 0.1;
+const float kd = 0.1;
+
+PID pid(kp, ki, kd);
+
+// ...
+
+while (condition) {
+
+  // Compute dt in seconds 
+  unsigned long now = millis();
+  if (now - lastTime < dtMillis) return;
+  float dt = (now - lastTime) / 1000.0f; // seconds
+  lastTime = now;
+
+  float actual = sensor.read();
+  float control = pid.update(target, actual, dt);
+  // Apply the control
+}
+            </code></pre>
+          </li>
+
+          <li>
+            The <strong>Kalman</strong> library provides the implementation for a 1D Kalman filter.
+            <pre><code class="language-cpp">
+KalmanFilter filter(0.1f, 1.0f, 25.0f);
+//                   ^      ^     ^
+//                   |      |     Initial error covariance (allow more initial uncertainty)
+//                   |      Measurement noise (fast motor = more measurement variance)
+//                   Process noise (prevent covariance collapse)
+
+// ...
+
+while (condition) {
+
+  float reading = sensor.read();
+  float filtered = filter.update(reading);
+  // ...
+}
+            </code></pre>
+          </li>
+
+          <li>
+            A <strong>DriveUnit</strong> object represents an actuated wheel. It bundles a motor, encoder, PID controller and Kalman filter.
+            During each control cycle, it:
+            <ol>
+              <li>Measures the current wheel RPM using the encoder</li>
+              <li>Filters the measurement through the 1D Kalman filter</li>
+              <li>Computes the control signal via PID regulation</li>
+              <li>Sends the resulting command to the motor driver</li>
+            </ol>
+            This allows each wheel to be independently stabilized to its desired speed.
+            <pre><code class="language-cpp">
+const uint8_t encoderInA = 2;
+const uint8_t motorInA = 5;
+const uint8_t motorInB = 6;
+const float ticksPerRev = 894.0f;  // Depends on the motor
+const float maxSpeedRPM = 60.0f;   // Depends on the motor
+
+Encoder encoder(encoderInA);
+Motor motor(motorInA, motorInB, motorEnable);
+DriveUnit driveUnit(motor, encoder, ticksPerRev, maxSpeedRPM);
+
+// Configure the driveUnit e.g. set PID gains, set Kalman gains, ...
+
+driveUnit.setTargetAngularVelocity(40);  // Or setTargetRPM
+
+// ...
+while (condition) {
+  driveUnit.update();
+}
+            </code></pre>
+          </li>
+
+        </ul>
+
+        <h3>Encoder Implementation</h3>
+
+        <p>
+        Encoder pulses can occur at high frequency, especially for high-resolution encoders mounted on the motor shaft. Polling them in the main loop would lead to missed ticks. Each encoder should be updated inside an interrupt service routine (ISR) that triggers on encoder signal rising edge.
+        </p>
+
+        <p>The standard pattern for creating and updating an encoder looks like this:</p>
+        <pre><code class="language-cpp">
+Encoder encoder(pin);
+
+void encoderISR() {
+  encoder.update();  // increase number of ticks
+}
+
+attachInterrupt(digitalPinToInterrupt(pin), encoderISR, RISING);
+        </code></pre>
+
+        <p>
+        However, this approach requires manually declaring the ISR function and attaching it to the pin every time an encoder is created. To make the encoder setup more user-friendly and reduce the amount of code one should write, I used a static interrupt pattern. This means a predefined number of encoder instances are created and each one has a dedicated static ISR that references the correct encoder object.
+        </p>
+
+        <p>
+        This is how instantiation looks with the static ISR pattern:
+        </p>
+       <pre><code class="language-cpp">
+Encoder encoder(pin);
+        </code></pre>
+
+        <p>
+        This design allows to instantiate an encoder once and forget about ISR setup (handled automatically). Interrupt management is isolated inside the Encoder class.
+        </p>
+
+        <p>
+        The trade-off is that some configuration must be hardcoded at compile time (the number of supported encoders).
+        </p>
+
+        <p>
+        The Arduino Nano only has 2 interrupt capable pins, so it was unnecessary to support more encoders via software. If you want to support more encoders, you can change this part of the code:
+        </p>
+        <pre><code class="language-cpp">
+// encoder.hpp
+static Encoder* _instances[2]; // support 2 encoders
+
+// encoder.cpp
+Encoder* Encoder::_instances[2] = {nullptr, nullptr};
+        </code></pre> 
+
+        <p>
+          Another aspect worth mentioning is the fact that each encoder has two modes: Count Mode and Period Mode.
+        </p>
+
+        <ul>
+          <li>
+            <strong>Count Mode</strong> is designed for high-resolution encoders mounted directly on the motor shaft. In this case the time between
+            two subsequent pulses is very short and we must measure the speed by counting the number of ticks over a fixed
+            time window. The RPM is computed as:
+            <pre><code class="language-cpp">
+float computeCountMode(long deltaTicks, long deltaTime, int ticksPerRev) {
+  return (60.0f * 1000000.0f * deltaTicks) / (ticksPerRev * deltaTime);
+}
+            </code></pre>
+          </li>
+          <li>
+            <strong>Period Mode</strong> is designed for low-resolution encoders, typically mounted on the gearbox ouput shaft, after the reduction.
+            In this scenario tick intervals are longer and counting over time would lead to poor precision. Instead of counting ticks 
+            we measure the time between consecutive pulses, from which the RPM is derived as: 
+            <pre><code class="language-cpp">
+float computePeriodMode(float tickIntervalMicros, int ticksPerRev) {
+  return (60.0f * 1000000.0f) / (tickIntervalMicros * ticksPerRev);
+}
+            </code></pre>
+          </li>
+        </ul>
+        </br>
+
+        <p>
+          A question might arise: why not using quadrature encoders?
+        </p>
+        <p>
+          Quadrature encoders can detect both speed and direction, but each requires two interrupt-capable pins.
+          With two encoders, this would consume four interrupts, exceeding what the Arduino Nano provides.
+          Since motor direction is already known from the control signal, single-channel encoders suffice.
+        </p>
+
+        <p>
+          You can find the complete code in this repository:
+        </p>
 
         <a class="link-banner" href="https://github.com/ggldnl/Differential-Drive-Controller" target="_blank">
           <div class="banner-content">
