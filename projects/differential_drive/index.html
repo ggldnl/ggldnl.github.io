@@ -54,7 +54,6 @@
         <div class="project-tags">
           <span class="tag">Mobile robotics</span>
           <span class="tag">Control systems</span>
-          <span class="tag">ROS</span>
         </div>
       </header>
 
@@ -68,31 +67,34 @@
 
         <h2 id="overview">Project Overview</h2>
         <p>
-          I found myself taking a class in Autonomous and Mobile Robotics, which dealt with
+          I took a class in Autonomous and Mobile Robotics, which dealt with
           `planning and control methods for achieving mobility and autonomy in mobile robots`.
+          I wanted to explore these concepts in dept so I decided to build a platform to experiment with.
+          <!--
           I've always been a practical learner and I knew I had to build a robot to really get
           into what I was studying.
+          -->
         </p>
 
         <p>
           I decided to go for the simplest mobile robot I could think of that is still of practical utility: a
-          differential drive robot. It follows the same kinematic model as a unicycle, which is the simplest model
+          <strong>differential drive robot</strong>. It follows the same kinematic model as a unicycle, which is the simplest model
           that captures meaningful mobility, but is easier to build.
           <!--but it doesn't need additional control to stay upright, having a 
           three-point contact with the ground. -->
         </p>
 
+        <!--
         <p>
-          Other considerations:
+          The main focus of the project was to apply some theory on low-level control. Other considerations:
         </p>
-
+        
         <ul>
           <li>
             I wanted it to be a template for future mobile robots — something modular and easily upgradable.
             What if I want to swap the motors for something more powerful, try different encoders or use a
             different chassis? I designed and built it so that every component could be swapped or upgraded without
-            having
-            to start over and I kept this principle in mind even when writing the software.
+            having to start over and I kept this principle in mind even when writing the software.
           </li>
           <li>
             I remember another professor mentioning the fact that good robot design often involves two levels of
@@ -114,22 +116,43 @@
             robust feedback control strategies.
           </li>
         </ul>
+        -->
+
+        <p>
+          The main focus of the project was to <strong>apply some theory and build a testbed for studying motion regulation</strong>.
+          Even two motors from the same manufacturer and production batch may behave differently — one might rotate
+          faster than the other under the same voltage. Friction in gears, additional load, and wheel–ground interaction
+          introduce further disturbances that degrade motion accuracy. Open-loop control is not reliable under these conditions, 
+          so I focused on closed-loop RPM regulation and related feedback strategies.
+        </p>
+
+        <p>
+          This also tied into a broader architectural question. A professor once pointed out that effective robot design
+          often separates computation into two layers: a high-level stage for low-frequency, heavy tasks — planning, 
+          fiducial pose correction, and so on — and a low-level stage for motor control and sensor reading in near-real time.
+          I wanted to test this idea, so I used a Raspberry Pi for high-level logic and an Arduino Nano for low-level control.
+          In hindsight, this setup is limited. The upper layer is currently underused, and the lower layer lacks 
+          a real-time operating system, which leads to duty-cycle jitter and timing inconsistencies 
+          that affect RPM estimates.
+        </p>
 
         <p>
           This article provides an overview of the project, showing the design process from start to finish.
+          The robot is functional, but it is only a first iteration and will require extensive changes 
+          before becoming a solid platform for further work. 
         </p>
 
         <h2 id="hardware">Hardware</h2>
 
         <p>
-          I started prototyping with this rig. You can see two different motor+encoder combinations because one of the goals 
-          for this project was to keep everything modular and not too tied to a particular hardware. I tested:
+          I started prototyping with this rig. You can see two different motor–encoder combinations because one of the goals
+          was to keep the design modular and not tied to any specific hardware. I tested the following:
 
           <ul>
-            <li> A TT motor (the yellow one) with an infrared encoder mounted on the output shaft, after the reduction. 
+            <li> A <strong>TT motor</strong> (the yellow one) with an infrared encoder mounted on the output shaft, after the reduction. 
               It has low resolution (20 ticks per rotation) and thus high time delta between subsequent encoder pulses.
             </li>
-            <li> A N20 motor with a magnetic encoder mounted on the motor shaft, before the reduction.
+            <li> A <strong>N20 motor</strong> with a magnetic encoder mounted on the motor shaft, before the reduction.
               This has higher resolution (3 ticks per motor shaft rotation, with a 298:1 reduction, meaning we should see 894 ticks for a complete rotation of the output shaft),
               and a much lower time delta between subsequent encoder pulses.
             </li>
@@ -142,7 +165,7 @@
         </div>
 
         <p>
-          After making sure everything was working as intended I moved on to designing the PCB. 
+          After making sure everything was working as intended I moved on to <strong>designing the PCB</strong>. 
         </p>
 
         <div class="media-container">
@@ -165,13 +188,13 @@
             An Arduino Nano handles the low level stuff (controlling the motors, reading encoders and sensors, ...).
           </li>
           <li>
-            A Raspberry Pi Zero 2 receives messages from other ROS nodes and commands the Arduino to do something.
+            A Raspberry Pi Zero can act as a high-level node in a larger system, receiving messages from external processes 
+            and sending commands to the Arduino.
           </li>
           <li>
-            The DRV8833 is an h-bridge. An h-bridge allows a DC motor to be driven in both forward and reverse
-            directions
-            by switching the polarity of the voltage applied to the motor. The DRV8833 in particular supports variable
-            speed both formward and backwards when a PWM signal is used.
+            The DRV8833 is an H-bridge. An H-bridge allows a DC motor to be driven in both forward and reverse
+            directions by switching the polarity of the voltage applied to the motor. The DRV8833 in particular 
+            supports variable speed both formward and backwards when a PWM signal is used.
           </li>
           <li>
             I used two N20 DC motors, rated for 60RPM at 6V. They have a gearbox and a two-phase magnetic encoder.
@@ -180,11 +203,10 @@
           </li>
           <li>
             UART is used to let the Arduino (low level) and Raspberry (high level) send messages back and forth. The
-            UART is a common
-            serial communication protocol that uses pins VCC, GND, RX (receive data pin) and TX (transmit data pin).
-            The problem in my case was that the Arduino uses 5V logic while the Raspberry Pi uses 3.3V logic.
-            I used the two resistors R1 and R2 to implement a voltage divider to bring the voltage from the two 
-            devices on the same level.
+            UART is a common serial communication protocol that uses pins VCC, GND, RX (receive data pin) and TX 
+            (transmit data pin). The problem in my case was that the Arduino uses 5V logic while the Raspberry Pi 
+            uses 3.3V logic. I used the two resistors R1 and R2 to implement a voltage divider to bring the voltage 
+            from the two devices on the same level.
           </li>
         </ul>
 
@@ -200,17 +222,17 @@
             Pins A0 to A3 can be used for other purposes. In particular, they can be used to control a shift register.
             I specifically thought about a shift register because one of the things I wanted to experiment with was
             integrating ToF sensors and using them for mapping instead of a LIDAR.
-            The sensors I had work with I2C and they share the same address. In order to use one of them
-            we need to enable it (pulling the enable pin high), assign a unique address and disable it again (pulling the enable pin
-            low) at startup.
-            A shift register would have been just what we needed as it lets us control up to 8 new digital outputs. I
-            successfully tested this idea to drive 8 LEDs and I wrote a simple library to interface with the shift register, 
-            I'll include it on the github repository even though it is not currently used in the code.
+            The sensors I had work with I2C but they share the same address. In order to use one of them
+            I had to enable it (pulling the enable pin high), assign a unique address and disable it again 
+            (pulling the enable pin low) at startup.
+            A shift register would have been just what I needed, as it lets me control up to 8 new digital outputs. I
+            successfully tested this idea to drive 8 LEDs and I wrote a simple library to interface with the shift register,
+            which I'll include in the GitHub repository even though it is not currently used in the code.
           </li>
         </ul>
 
         <p>
-          Other components are:
+          Other components, not explicitly mentioned in the schematics, are:
         </p>
         <ul>
           <li>
@@ -228,7 +250,7 @@
         </ul>
 
         <p>
-          Moving to the PCB layout, I managed to fit everything on a disc with a 10 cm diameter.
+          Moving to the <strong>PCB layout</strong>, I managed to fit everything on a disc with a 10 cm diameter.
         </p>
 
         <div class="media-row">
@@ -251,15 +273,14 @@
 
         <p>
           I printed the rest of the structure in Matte Black PLA and the wheels in TPU to add extra grippyness
-          even though it wasn't as much grippy as I hoped for. I used M2 heat set inserts and screws to
+          even though it wasn't as grippy as I hoped for. I used M2 heat set inserts and screws to
           mount everything. The wheels are just press fitted on the motor shaft and I used an M3 washer on each to separate them
-          from the mounting bracket. Mounting the batteries is always tricky; in this case I used velcro tape to hold them in place.
+          from the mounting bracket. Mounting batteries is always tricky: in this case I used velcro tape to secure it.
         </p>
 
         <p>
-          Another aspect worth mentioning is the caster wheel. I used a simple metal ball that I had lying around
-          (who remembers Geomag?) with a 10mm diameter and I printed a mount that allows it to spin more or less
-          freely.
+          Another aspect worth mentioning is the caster wheel. I used a 10mm diameter metal ball that I had lying around 
+          and I printed a mount that allows it to spin more or less freely.
         </p>
 
         <div class="media-container">
@@ -274,7 +295,7 @@
         -->
 
         <p>
-          This is the exploded view of the chassis:
+          This is the <strong>exploded view</strong> of the chassis:
         </p>
 
         <div class="media-container">
@@ -353,8 +374,8 @@
         </ul>
 
         <p>
-          To keep the system simple I discarded the low-level motor control (current and voltage loops) 
-          and implemented a single high-level velocity control loop around each motor using encoder feedback. 
+          To keep the system simple I discarded the (hardware) current and voltage loops 
+          and <strong>implemented a single high-level (software) velocity control loop around each motor</strong> using encoder feedback. 
           Each wheel’s speed is regulated by a PID controller, and the raw RPM readings are smoothed using a 
           1D Kalman filter for noise reduction and improved estimation stability.
         </p>
@@ -386,11 +407,11 @@
         </a>
 
         <p>
-          In addition to the feedback control, a <strong>feedforward term can be added</strong> to anticipate the required motor command
-          based on the desired velocity. This acts as a baseline estimate of the control signal for a given target RPM. 
+          In addition to the feedback control I considered using a <strong>feedforward term</strong> to anticipate the required motor command
+          based on the desired velocity. This should act as a baseline estimate of the control signal for a given target RPM. 
           Without feedforward, when a new speed command is issued, the initial error is large and the controller outputs 
-          a very high command (often near saturation), causing the motor to accelerate
-          too aggressively before settling. Feedforward mitigates this by providing a more balanced and predictable response.
+          a very high command (often near saturation), causing the motor to accelerate too aggressively before settling. 
+          Feedforward mitigates this by providing a more balanced and predictable response.
         </p>
         
         <p>
@@ -410,13 +431,13 @@
           Here’s the <strong>final control architecture</strong>. Each wheel has its own loop, so both are regulated
           independently using the same structure. The input is the desired RPM we want the motor to achieve. The
           controller produces a control signal (also in RPM) that is sent to the motor. Dedicated software translates RPM to PWM
-          for the motor driver. The encoder reading is used to measure the actual RPM the motor is spinning, the result 
-          is filtered fed back to the controller.
+          for the motor driver. The encoder reading is used to measure the actual RPM the motor is spinning, the filtered result 
+          is fed back to the controller as a reference for the next iteration.
         </p>
 
         <div class="media-container">
           <img src="images/control_loop.jpg" alt="Inner control loop" class="article-image zoomable">
-          <p class="image-caption">Inner control loop</p>
+          <p class="image-caption">Inner control loop (minor inaccuracies in how the 1D Kalman filter is diagrammed)</p>
         </div>
 
         <h2 id="software">Software</h2>
@@ -622,7 +643,7 @@ float computePeriodMode(float tickIntervalMicros, int ticksPerRev) {
         </br>
 
         <p>
-          A question might arise: why not using quadrature encoders?
+          A question might arise: <strong>why not using quadrature encoders?</strong>
         </p>
         <p>
           Quadrature encoders can detect both speed and direction, but each requires two interrupt-capable pins.
@@ -663,23 +684,27 @@ float computePeriodMode(float tickIntervalMicros, int ticksPerRev) {
         </p>
 
         <ul>
-          <li>The robot goes forward in a straight line but eventually small errors accumulate, causing it to drift off
-            track. This is not a big deal as in applications like SLAM we can compensate for small inaccuracies.</li>
-          <li>It's a bit difficult to see in the gif but the motion is quite jerky.</li>
+          <li>
+            The robot goes forward in a straight line but eventually <strong>small errors accumulate</strong>, causing it to drift off
+            track. This is not a big deal as we should be able to compensate for small inaccuracies with pose-correction techniques.
+          </li>
+          <li>
+            It's a bit difficult to see in the gif but <strong>the motion is quite jerky</strong>.
+          </li>
         </ul>
 
         <p>
           That little zig-zag motion is a classic effect when two wheels are controlled independently. Each wheel’s PID controller only sees
           its own measurement and reacts locally, so the corrections happen at slightly different times and magnitudes. 
           On top of that, encoder quantization and other unwanted effects make the control inputs jumpy. 
-          Those small, asynchronous corrections add up and the result is a wiggly, zig-zag path instead of a perfectly smooth line.
+          Those small, asynchronous corrections adds up and the result is a wiggly, zig-zag path instead of a perfectly smooth line.
           I'm not sure how to solve this problem, but I think the result obtained is satisfactory for now.
         </p>
 
         <p>
           Another problem is the transient i.e. the time we need to wait for the PID to make che controlled variable converge to the setpoint.
           During this time the speed is still adjusting and it's difficult to know how much the respective wheel has turned. This can be solved by either
-          spending more money for better hardware or by tuning the PID better (more reactive).
+          spending more money for better hardware or by tuning the PID better (to be more reactive).
         </p>
         <div class="media-container">
           <img src="images/pid_1.png" alt="Transient problem" class="article-image zoomable">
@@ -687,8 +712,7 @@ float computePeriodMode(float tickIntervalMicros, int ticksPerRev) {
         </div>
 
         <p>
-          Overall it was a fun little project but what I'm most excited about is that I can now devote myself to more
-          complex stuff reusing what I learned and implemented.
+          For now, I’ll stop here and treat this as a first version. Overall, it was a fun little project.
         </p>
 
       </article>

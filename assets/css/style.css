@@ -770,3 +770,8 @@ main {
     transform: scale(1.5); /* optional: make emoji slightly bigger on hover */
     color: #22863a;        /* optional: change color on hover */
 }
+
+/* Reduce bold text thickness */
+b, strong {
+    font-weight: 700;
+}
