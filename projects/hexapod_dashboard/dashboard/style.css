@@ -1,0 +1,284 @@
+
+:root {
+    /* Colors */
+    --color-primary: #070707;
+    --color-primary-hover: #2a2a2a;
+    --color-success: #4CAF50;
+    --color-success-hover: #45a049;
+    --color-info: #2196F3;
+    --color-error: #f44336;
+    
+    --color-bg-gradient-start: #e8d5e8;
+    --color-bg-gradient-end: #d5e8e8;
+    
+    --color-surface: rgba(255, 255, 255, 0.9);
+    --color-surface-solid: #ffffff;
+    --color-border: #e0e0e0;
+    
+    --color-text-primary: #070707;
+    --color-text-secondary: #666666;
+    --color-text-inverse: #ffffff;
+    
+    /* Font */
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    --font-size-base: 16px;
+    --font-size-sm: 14px;
+    --font-size-lg: 24px;
+    
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    
+    /* Spacing */
+    --radius-sm: 6px;
+    --radius-md: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    background: linear-gradient(135deg, var(--color-bg-gradient-start) 0%, var(--color-bg-gradient-end) 100%);
+    overflow: hidden;
+    height: 100vh;
+    color: var(--color-text-primary);
+}
+
+/* Canvas */
+#canvas-container {
+    width: 100%;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Connect Button (Top Left) */
+.top-left {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+}
+
+.connect-btn {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: 12px 24px;
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: var(--radius-sm);
+}
+
+.connect-btn:hover {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border-color: var(--color-primary);
+}
+
+.connect-btn.connected {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border-color: var(--color-primary);
+}
+
+.connect-btn.connected:hover {
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+}
+
+/* Connection Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--color-surface-solid);
+    padding: 40px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    min-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.modal-title {
+    font-family: var(--font-family);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: 30px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    margin-bottom: 8px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-text-primary);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-solid);
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-solid);
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.3s ease;
+}
+
+.modal-btn:hover {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border-color: var(--color-primary);
+}
+
+.modal-btn.primary {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border-color: var(--color-primary);
+}
+
+.modal-btn.primary:hover {
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+}
+
+/* Telemetry Data (Top Right) */
+.top-right {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    min-width: 200px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+.telemetry-item {
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    margin-bottom: 4px;
+    font-style: italic;
+}
+
+.no-data {
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+/* Loading Status (Bottom Left) */
+.file-upload {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 10;
+}
+
+.status-message {
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-normal);
+    padding: 10px 15px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+}
+
+.status-message.loading {
+    /*
+        border-color: var(--color-info);
+        color: var(--color-info);
+    */
+    border-color: var(--color-surface);
+    color: var(--color-text-primary);
+}
+
+.status-message.success {
+    /*
+        border-color: var(--color-success);
+        color: var(--color-success);
+    */
+    border-color: var(--color-surface);
+    color: var(--color-text-primary);
+}
+
+.status-message.error {
+    border-color: var(--color-error);
+    color: var(--color-error);
+}
+
+/* Scrollbar */
+.top-right::-webkit-scrollbar {
+    width: 4px;
+}
+
+.top-right::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.top-right::-webkit-scrollbar-thumb {
+    background: rgba(7, 7, 7, 0.3);
+    border-radius: 2px;
+}
