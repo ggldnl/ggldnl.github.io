@@ -44,7 +44,12 @@ async def handle_client(websocket):
                 # Add static joint values
                 payload["joints"] = {}
                 for joint in JOINT_NAMES:
-                    payload["joints"][joint] = 0
+                    if "tibia" in joint:
+                        payload["joints"][joint] = -45
+                    elif "femur" in joint:
+                        payload["joints"][joint] = 45
+                    else:
+                        payload["joints"][joint] = 0
                 
                 # Simulate voltage and current fluctuations
                 rnd = random.random()
