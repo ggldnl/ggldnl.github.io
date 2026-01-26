@@ -6,12 +6,14 @@ let telemetryConnection = null;
 let updateInterval = null;
 let isConnected = false;
 
-// GitHub URDF and CAD folder URLs
+// GitHub URDF and CAD folder URLs - we will use the PyBullet version of the URDF
 const URDF_URL = 'https://raw.githubusercontent.com/ggldnl/Hexapod-Hardware/main/hexapod.urdf';
 const CAD_BASE_URL = 'https://raw.githubusercontent.com/ggldnl/Hexapod-Hardware/main/CAD/';
 
-// STL Loader
+// Meshes
 let stlLoader = null;
+const meshCache = {};
+
 
 // Initialize Three.js scene
 function initScene() {
@@ -106,6 +108,13 @@ function animate() {
     requestAnimationFrame(animate);
     controls.update();
     renderer.render(scene, camera);
+}
+
+async function loadMeshCached(filename) {
+    if (!meshCache[filename]) {
+        meshCache[filename] = loadMeshFromGitHub(filename);
+    }
+    return meshCache[filename];
 }
 
 // URDF Loading
@@ -269,16 +278,19 @@ async function parseURDF(urdfContent) {
 
             else if (geometry.querySelector("mesh")) {
                 const meshEl = geometry.querySelector("mesh");
-                const stl = await loadMeshFromGitHub(meshEl.getAttribute("filename"));
+                const filename = meshEl.getAttribute("filename");
+
+                const baseGeom = await loadMeshCached(filename);
+                const geom = baseGeom.clone();
 
                 const scale = meshEl.getAttribute("scale");
                 if (scale) {
                     const s = scale.split(" ").map(Number);
-                    stl.scale(s[0], s[1], s[2]);
+                    geom.scale(s[0], s[1], s[2]);
                 }
 
                 mesh = new THREE.Mesh(
-                    stl,
+                    geom,
                     new THREE.MeshPhongMaterial({ color: getLinkColor(i) })
                 );
             }
@@ -363,13 +375,52 @@ async function parseURDF(urdfContent) {
 
         scene.add(robot);
 
+        // Set default joint angles
+        const defaultJointAngles = {};
+        for (let i = 1; i <= 6; i++) {
+            defaultJointAngles[`leg_${i}_coxa`] = 0;
+            defaultJointAngles[`leg_${i}_femur`] = 45;
+            defaultJointAngles[`leg_${i}_tibia`] = -45;
+        }
+        console.log('Default joint angles:', defaultJointAngles);
+
+        Object.entries(defaultJointAngles).forEach(([jointName, angleDeg]) => {
+            const joint = joints[jointName];
+            if (!joint || !joint.object) return;
+
+            joint.angle = angleDeg;
+
+            const radians = THREE.MathUtils.degToRad(angleDeg);
+
+            const axis = new THREE.Vector3(
+                joint.axis[0],
+                joint.axis[1],
+                joint.axis[2]
+            ).normalize();
+
+            const deltaQ = new THREE.Quaternion()
+                .setFromAxisAngle(axis, radians);
+
+            joint.object.quaternion
+                .copy(joint.restQuaternion)
+                .multiply(deltaQ);
+        });
+        console.log('Default joint angles applied.');
+
         // Position robot at origin
+        /*
         const box = new THREE.Box3().setFromObject(robot);
         const center = box.getCenter(new THREE.Vector3());
         robot.position.sub(center);
+        */
 
+        // Position the robot so its bottom sits on the ground plane y = 0
+        const box = new THREE.Box3().setFromObject(robot);
+        const center = box.getCenter(new THREE.Vector3());
+        robot.position.set(-center.x, -box.min.y, -center.z);
+        
         showStatus(`Robot loaded: ${Object.keys(joints).length} joints`, 'success');
-    
+
     } catch (error) {
         console.error('Error parsing URDF:', error);
         showStatus('Error loading URDF: ' + error.message, 'error');

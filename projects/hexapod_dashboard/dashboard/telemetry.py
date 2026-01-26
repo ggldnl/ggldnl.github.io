@@ -2,8 +2,6 @@ import websockets
 import asyncio
 import random
 import json
-import math
-import time
 
 
 HOST = "0.0.0.0"
