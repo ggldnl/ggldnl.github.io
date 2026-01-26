@@ -418,6 +418,9 @@ async function parseURDF(urdfContent) {
         const box = new THREE.Box3().setFromObject(robot);
         const center = box.getCenter(new THREE.Vector3());
         robot.position.set(-center.x, -box.min.y, -center.z);
+
+        // Rotate the robot so that it faces the camera
+        robot.rotateZ(Math.PI);
         
         showStatus(`Robot loaded: ${Object.keys(joints).length} joints`, 'success');
 
