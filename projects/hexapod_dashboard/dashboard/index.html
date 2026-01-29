@@ -12,42 +12,26 @@
     <!-- 3D Canvas -->
     <div id="canvas-container"></div>
 
-    <!-- Top Left - Connect button -->
-    <div class="top-left">
-        <button class="connect-btn" id="connect-btn">Connect</button>
+    <!-- Left Panel Toggle Button -->
+    <div class="panel-toggle">
+        <button id="toggle-panel-btn" class="toggle-btn">
+            <span class="toggle-icon">◀</span>
+        </button>
     </div>
 
-    <!-- Top Right - Telemetry data -->
-    <div class="top-right" id="telemetry-data">
-        <div class="no-data">No data. Connect robot to view telemetry.</div>
+    <!-- Left Panel -->
+    <div id="left-panel" class="left-panel">
+        <div class="panel-header">
+            <h2>Joint Control</h2>
+        </div>
+        <div class="panel-content" id="joint-sliders">
+            <!-- Joint sliders will be dynamically generated here -->
+        </div>
     </div>
 
     <!-- Bottom Left - Loading status -->
     <div class="file-upload">
         <div id="upload-status"></div>
-    </div>
-
-    <!-- Connection modal -->
-    <div class="modal" id="connection-modal">
-        <div class="modal-content">
-            <div class="modal-title">Robot Connection</div>
-            <div class="input-group">
-                <label>IP Address</label>
-                <input type="text" id="robot-ip" value="192.168.1.55" placeholder="192.168.1.100">
-            </div>
-            <div class="input-group">
-                <label>Port</label>
-                <input type="number" id="robot-port" value="8765" placeholder="8765">
-            </div>
-            <div class="input-group">
-                <label>Update Rate (Hz)</label>
-                <input type="number" id="update-rate" value="30" min="1" max="60">
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-btn" id="cancel-btn">Cancel</button>
-                <button class="modal-btn primary" id="confirm-connect-btn">Connect</button>
-            </div>
-        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>

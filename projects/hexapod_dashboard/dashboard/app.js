@@ -5,6 +5,7 @@ let joints = {};
 let telemetryConnection = null;
 let updateInterval = null;
 let isConnected = false;
+let isPanelOpen = false;
 
 // GitHub URDF and CAD folder URLs - we will use the PyBullet version of the URDF
 const URDF_URL = 'https://raw.githubusercontent.com/ggldnl/Hexapod-Hardware/main/hexapod.urdf';
@@ -14,6 +15,47 @@ const CAD_BASE_URL = 'https://raw.githubusercontent.com/ggldnl/Hexapod-Hardware/
 let stlLoader = null;
 const meshCache = {};
 
+// Animation system
+let animationQueue = [];
+let currentAnimation = null;
+
+// Define poses for startup animation
+const INITIAL_POSE = {
+    leg_1_coxa: 0, leg_1_femur: 0, leg_1_tibia: 0,
+    leg_2_coxa: 0, leg_2_femur: 0, leg_2_tibia: 0,
+    leg_3_coxa: 0, leg_3_femur: 0, leg_3_tibia: 0,
+    leg_4_coxa: 0, leg_4_femur: 0, leg_4_tibia: 0,
+    leg_5_coxa: 0, leg_5_femur: 0, leg_5_tibia: 0,
+    leg_6_coxa: 0, leg_6_femur: 0, leg_6_tibia: 0,
+};
+
+const LEGS_UP = {
+    leg_1_coxa: 0, leg_1_femur: 80, leg_1_tibia: 0,
+    leg_2_coxa: 0, leg_2_femur: 80, leg_2_tibia: 0,
+    leg_3_coxa: 0, leg_3_femur: 80, leg_3_tibia: 0,
+    leg_4_coxa: 0, leg_4_femur: 80, leg_4_tibia: 0,
+    leg_5_coxa: 0, leg_5_femur: 80, leg_5_tibia: 0,
+    leg_6_coxa: 0, leg_6_femur: 80, leg_6_tibia: 0,
+};
+
+const LEGS_DOWN = {
+    leg_1_coxa: 0, leg_1_femur: 45, leg_1_tibia: -45,
+    leg_2_coxa: 0, leg_2_femur: 45, leg_2_tibia: -45,
+    leg_3_coxa: 0, leg_3_femur: 45, leg_3_tibia: -45,
+    leg_4_coxa: 0, leg_4_femur: 45, leg_4_tibia: -45,
+    leg_5_coxa: 0, leg_5_femur: 45, leg_5_tibia: -45,
+    leg_6_coxa: 0, leg_6_femur: 45, leg_6_tibia: -45,
+};
+
+const STANDING_POSE = {
+    leg_1_coxa: 0, leg_1_femur: 25, leg_1_tibia: -60,
+    leg_2_coxa: 0, leg_2_femur: 25, leg_2_tibia: -60,
+    leg_3_coxa: 0, leg_3_femur: 25, leg_3_tibia: -60,
+    leg_4_coxa: 0, leg_4_femur: 25, leg_4_tibia: -60,
+    leg_5_coxa: 0, leg_5_femur: 25, leg_5_tibia: -60,
+    leg_6_coxa: 0, leg_6_femur: 23, leg_6_tibia: -60,  // TODO Leg 6 has something wrong in URDF
+};
+const STANDING_HEIGHT_DELTA = 0.029;
 
 // Initialize Three.js scene
 function initScene() {
@@ -25,7 +67,7 @@ function initScene() {
     
     // Camera
     camera = new THREE.PerspectiveCamera(
-        50,
+        20,
         container.clientWidth / container.clientHeight,
         0.1,
         1000
@@ -75,10 +117,6 @@ function initScene() {
     directionalLight2.position.set(-5, 5, -5);
     scene.add(directionalLight2);
     
-    // Grid
-    // const gridHelper = new THREE.GridHelper(5, 20, 0xcccccc, 0xe0e0e0);
-    // scene.add(gridHelper);
-    
     // Ground plane (shadow receiver)
     const groundGeometry = new THREE.PlaneGeometry(10, 10);
     const groundMaterial = new THREE.ShadowMaterial({ opacity: 0.2 });
@@ -106,6 +144,12 @@ function onWindowResize() {
 
 function animate() {
     requestAnimationFrame(animate);
+    
+    // Update current animation if one is running
+    if (currentAnimation) {
+        updateAnimation();
+    }
+    
     controls.update();
     renderer.render(scene, camera);
 }
@@ -155,7 +199,7 @@ async function loadURDFFromURL(url) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const urdfContent = await response.text();
-        parseURDF(urdfContent);
+        await parseURDF(urdfContent);
     } catch (error) {
         console.error('Error loading URDF from URL:', error);
         showStatus('Error loading robot model: ' + error.message, 'error');
@@ -375,44 +419,9 @@ async function parseURDF(urdfContent) {
 
         scene.add(robot);
 
-        // Set default joint angles
-        const defaultJointAngles = {};
-        for (let i = 1; i <= 6; i++) {
-            defaultJointAngles[`leg_${i}_coxa`] = 0;
-            defaultJointAngles[`leg_${i}_femur`] = 45;
-            defaultJointAngles[`leg_${i}_tibia`] = -45;
-        }
-        console.log('Default joint angles:', defaultJointAngles);
-
-        Object.entries(defaultJointAngles).forEach(([jointName, angleDeg]) => {
-            const joint = joints[jointName];
-            if (!joint || !joint.object) return;
-
-            joint.angle = angleDeg;
-
-            const radians = THREE.MathUtils.degToRad(angleDeg);
-
-            const axis = new THREE.Vector3(
-                joint.axis[0],
-                joint.axis[1],
-                joint.axis[2]
-            ).normalize();
-
-            const deltaQ = new THREE.Quaternion()
-                .setFromAxisAngle(axis, radians);
-
-            joint.object.quaternion
-                .copy(joint.restQuaternion)
-                .multiply(deltaQ);
-        });
-        console.log('Default joint angles applied.');
-
-        // Position robot at origin
-        /*
-        const box = new THREE.Box3().setFromObject(robot);
-        const center = box.getCenter(new THREE.Vector3());
-        robot.position.sub(center);
-        */
+        // Set initial pose
+        setJointAngles(INITIAL_POSE);
+        console.log('Initial pose applied.');
 
         // Position the robot so its bottom sits on the ground plane y = 0
         const box = new THREE.Box3().setFromObject(robot);
@@ -424,113 +433,20 @@ async function parseURDF(urdfContent) {
         
         showStatus(`Robot loaded: ${Object.keys(joints).length} joints`, 'success');
 
+        // Generate joint sliders
+        generateJointSliders();
+
+        // Start the startup animation sequence
+        startStartupAnimations();
+
     } catch (error) {
         console.error('Error parsing URDF:', error);
         showStatus('Error loading URDF: ' + error.message, 'error');
     }
 }
 
-
-function getLinkColor(index) {
-    const colors = [
-        0x95a5a6, // Gray
-        0x7f8c8d, // Dark gray
-        0xbdc3c7, // Light gray
-    ];
-    
-    // return colors[index % colors.length];
-    return colors[1];
-}
-
-// Connection handling
-function openConnectionModal() {
-    document.getElementById('connection-modal').classList.add('active');
-}
-
-function closeConnectionModal() {
-    document.getElementById('connection-modal').classList.remove('active');
-}
-
-function connectToRobot() {
-    const address = document.getElementById('robot-ip').value;
-    const port = document.getElementById('robot-port').value;
-    const updateRate = parseInt(document.getElementById('update-rate').value);
-    
-    if (!address || !port) {
-        alert('Please enter IP address and port');
-        return;
-    }
-    
-    closeConnectionModal();
-    
-    const wsUrl = `ws://${address}:${port}`;
-    
-    try {
-        telemetryConnection = new WebSocket(wsUrl);
-        
-        telemetryConnection.onopen = function() {
-            isConnected = true;
-            document.getElementById('connect-btn').classList.add('connected');
-            document.getElementById('connect-btn').textContent = 'Connected';
-            
-            // Start requesting data
-            updateInterval = setInterval(() => {
-                if (telemetryConnection && telemetryConnection.readyState === WebSocket.OPEN) {
-                    telemetryConnection.send(JSON.stringify({ command: 'get_telemetry' }));
-                }
-            }, 1000 / updateRate);
-        };
-        
-        telemetryConnection.onmessage = function(event) {
-            try {
-                const data = JSON.parse(event.data);
-                updateTelemetry(data);
-            } catch (error) {
-                console.error('Error parsing telemetry:', error);
-            }
-        };
-        
-        telemetryConnection.onerror = function(error) {
-            console.error('WebSocket error:', error);
-            showStatus('WebSocket error:', error)
-        };
-        
-        telemetryConnection.onclose = function() {
-            disconnect();
-        };
-        
-    } catch (error) {
-        console.error('Connection error:', error);
-        showStatus('Connection error:', error)
-    }
-}
-
-function disconnect() {
-    isConnected = false;
-    document.getElementById('connect-btn').classList.remove('connected');
-    document.getElementById('connect-btn').textContent = 'Connect';
-    
-    if (updateInterval) {
-        clearInterval(updateInterval);
-        updateInterval = null;
-    }
-    
-    if (telemetryConnection) {
-        telemetryConnection.close();
-        telemetryConnection = null;
-    }
-    
-    // Clear telemetry display
-    document.getElementById('telemetry-data').innerHTML = 
-        '<div class="no-data">No data. Connect robot to view telemetry.</div>';
-}
-
-function updateTelemetry(data) {
-
-    if (!data.joints || !robot) return;
-
-    Object.entries(data.joints).forEach(([jointName, angleDeg]) => {
-
+function setJointAngles(angles) {
+    Object.entries(angles).forEach(([jointName, angleDeg]) => {
         const joint = joints[jointName];
         if (!joint || !joint.object) return;
 
@@ -551,42 +467,155 @@ function updateTelemetry(data) {
             .copy(joint.restQuaternion)
             .multiply(deltaQ);
     });
-
-    updateTelemetryDisplay(data);
 }
 
-function updateTelemetryDisplay(data) {
-    const container = document.getElementById('telemetry-data');
-    let html = '';
-    
-    // Power data
-    if (data.voltage !== undefined) {
-        html += `<div class="telemetry-item">Voltage: <span class="telemetry-value">${data.voltage.toFixed(2)} V</span></div>`;
-    }
-    
-    if (data.current !== undefined) {
-        html += `<div class="telemetry-item">Current: <span class="telemetry-value">${data.current.toFixed(2)} A</span></div>`;
-    }
-    
-    // Joint angles
-    if (data.joints && Object.keys(data.joints).length > 0) {
-        // Add a small gap if we have power data
-        if (html !== '') {
-            html += '<div style="margin-top: 12px;"></div>';
-        }
+function animateRobot(initialPose, finalPose, duration = 2000, finalBodyPose = null) {
+    return new Promise((resolve) => {
+        const animation = {
+            startPose: { ...initialPose },
+            targetPose: { ...finalPose },
+            duration: duration,
+            startTime: Date.now(),
+            resolve: resolve,
+            // Body animation
+            startBodyPose: finalBodyPose ? {
+                position: { ...robot.position },
+                rotation: { 
+                    x: robot.rotation.x, 
+                    y: robot.rotation.y, 
+                    z: robot.rotation.z 
+                }
+            } : null,
+            targetBodyPose: finalBodyPose ? {
+                position: { ...finalBodyPose.position },
+                rotation: finalBodyPose.rotation ? { ...finalBodyPose.rotation } : null
+            } : null
+        };
         
-        Object.keys(data.joints).sort().forEach(jointName => {
-            const angle = data.joints[jointName];
-            html += `<div class="telemetry-item">${jointName}: <span class="telemetry-value">${angle.toFixed(1)}</span></div>`;
-        });
+        // If no animation is running, start this one immediately
+        if (!currentAnimation) {
+            currentAnimation = animation;
+            setSliderInteraction(false);
+            console.log('Animation started');
+        } else {
+            // Queue the animation
+            animationQueue.push(animation);
+            console.log('Animation queued');
+        }
+    });
+}
+
+function updateAnimation() {
+    if (!currentAnimation) return;
+    
+    const elapsed = Date.now() - currentAnimation.startTime;
+    const progress = Math.min(elapsed / currentAnimation.duration, 1.0);
+    
+    // Ease-in-out interpolation
+    const t = progress < 0.5 
+        ? 2 * progress * progress 
+        : -1 + (4 - 2 * progress) * progress;
+    
+    // Interpolate joint angles
+    const currentPose = {};
+    for (const jointName in currentAnimation.startPose) {
+        currentPose[jointName] = currentAnimation.startPose[jointName] + 
+            (currentAnimation.targetPose[jointName] - currentAnimation.startPose[jointName]) * t;
     }
     
-    // If no data available
-    if (html === '') {
-        html = '<div class="no-data">No data</div>';
+    setJointAngles(currentPose);
+    updateSliderValues(currentPose);
+    
+    // Interpolate body pose if provided
+    if (currentAnimation.targetBodyPose && currentAnimation.startBodyPose) {
+        const start = currentAnimation.startBodyPose;
+        const target = currentAnimation.targetBodyPose;
+        
+        // Interpolate position
+        robot.position.x = start.position.x + (target.position.x - start.position.x) * t;
+        robot.position.y = start.position.y + (target.position.y - start.position.y) * t;
+        robot.position.z = start.position.z + (target.position.z - start.position.z) * t;
+        
+        // Interpolate rotation if specified
+        if (target.rotation) {
+            robot.rotation.x = start.rotation.x + (target.rotation.x - start.rotation.x) * t;
+            robot.rotation.y = start.rotation.y + (target.rotation.y - start.rotation.y) * t;
+            robot.rotation.z = start.rotation.z + (target.rotation.z - start.rotation.z) * t;
+        }
     }
     
-    container.innerHTML = html;
+    if (progress >= 1.0) {
+        // Animation completed
+        currentAnimation.resolve();
+        console.log('Animation completed');
+        
+        // Check if there are more animations in the queue
+        if (animationQueue.length > 0) {
+            currentAnimation = animationQueue.shift();
+            currentAnimation.startTime = Date.now();
+            console.log('Starting next animation from queue');
+        } else {
+            currentAnimation = null;
+            setSliderInteraction(true);
+            console.log('All animations completed, sliders enabled');
+        }
+    }
+}
+
+function setSliderInteraction(enabled) {
+    const sliders = document.querySelectorAll('.joint-slider');
+    sliders.forEach(slider => {
+        slider.disabled = !enabled;
+        if (enabled) {
+            slider.style.opacity = '1';
+            slider.style.cursor = 'pointer';
+        } else {
+            slider.style.opacity = '0.5';
+            slider.style.cursor = 'not-allowed';
+        }
+    });
+}
+
+async function startStartupAnimations() {
+    console.log('Starting startup animation sequence');
+    
+    // Get current robot position for reference
+    const currentPos = {
+        x: robot.position.x,
+        y: robot.position.y,
+        z: robot.position.z
+    };
+    
+    // Stand up from ground (obviously fake)
+
+    await animateRobot(INITIAL_POSE, LEGS_UP, 1500);
+    await animateRobot(LEGS_UP, LEGS_DOWN, 1500);
+    
+    // Fake standing by raising the base
+    await animateRobot(
+        LEGS_DOWN, 
+        STANDING_POSE, 
+        1500,
+        {
+            position: {
+                x: currentPos.x,
+                y: currentPos.y + STANDING_HEIGHT_DELTA,  // Raise the body by 0.05 units
+                z: currentPos.z
+            }
+        }
+    );
+    
+    console.log('Startup animation sequence complete');
+}
+
+function getLinkColor(index) {
+    const colors = [
+        0x95a5a6, // Gray
+        0x7f8c8d, // Dark gray
+        0xbdc3c7, // Light gray
+    ];
+    
+    return colors[1];
 }
 
 function showStatus(message, type = '') {
@@ -603,27 +632,128 @@ function showStatus(message, type = '') {
     }
 }
 
-// Event listeners
-document.getElementById('connect-btn').addEventListener('click', function() {
-    if (isConnected) {
-        disconnect();
-    } else {
-        openConnectionModal();
-    }
-});
+// Panel Toggle
+function initPanelToggle() {
+    const toggleBtn = document.getElementById('toggle-panel-btn');
+    const panel = document.getElementById('left-panel');
+    const canvasContainer = document.getElementById('canvas-container');
+    const fileUpload = document.querySelector('.file-upload');
+    const panelToggleDiv = document.querySelector('.panel-toggle');
+    
+    toggleBtn.addEventListener('click', () => {
+        isPanelOpen = !isPanelOpen;
+        
+        if (isPanelOpen) {
+            panel.classList.add('open');
+            canvasContainer.classList.add('panel-open');
+            fileUpload.classList.add('panel-open');
+            panelToggleDiv.classList.add('panel-open');
+            toggleBtn.classList.add('open');
+        } else {
+            panel.classList.remove('open');
+            canvasContainer.classList.remove('panel-open');
+            fileUpload.classList.remove('panel-open');
+            panelToggleDiv.classList.remove('panel-open');
+            toggleBtn.classList.remove('open');
+        }
+        
+        // Trigger window resize to update canvas
+        onWindowResize();
+    });
+}
 
-document.getElementById('cancel-btn').addEventListener('click', closeConnectionModal);
-document.getElementById('confirm-connect-btn').addEventListener('click', connectToRobot);
-
-// Close modal on outside click
-document.getElementById('connection-modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeConnectionModal();
+// Generate Joint Sliders
+function generateJointSliders() {
+    const container = document.getElementById('joint-sliders');
+    container.innerHTML = '';
+    
+    // Group joints by leg
+    for (let legNum = 1; legNum <= 6; legNum++) {
+        const legGroup = document.createElement('div');
+        legGroup.className = 'joint-group';
+        
+        const legTitle = document.createElement('div');
+        legTitle.className = 'joint-group-title';
+        legTitle.textContent = `Leg ${legNum}`;
+        legGroup.appendChild(legTitle);
+        
+        // Create sliders for coxa, femur, tibia
+        ['coxa', 'femur', 'tibia'].forEach(jointType => {
+            const jointName = `leg_${legNum}_${jointType}`;
+            const joint = joints[jointName];
+            
+            if (!joint) return;
+            
+            const sliderItem = document.createElement('div');
+            sliderItem.className = 'joint-slider-item';
+            
+            const label = document.createElement('div');
+            label.className = 'joint-slider-label';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = jointType.charAt(0).toUpperCase() + jointType.slice(1);
+            
+            const valueSpan = document.createElement('span');
+            valueSpan.className = 'joint-value';
+            valueSpan.id = `value-${jointName}`;
+            valueSpan.textContent = `${joint.angle.toFixed(1)}°`;
+            
+            label.appendChild(nameSpan);
+            label.appendChild(valueSpan);
+            
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.className = 'joint-slider';
+            slider.id = `slider-${jointName}`;
+            slider.min = -90;
+            slider.max = 90;
+            slider.value = joint.angle;
+            slider.step = 0.5;
+            
+            slider.addEventListener('input', (e) => {
+                const angle = parseFloat(e.target.value);
+                joint.angle = angle;
+                valueSpan.textContent = `${angle.toFixed(1)}°`;
+                
+                const radians = THREE.MathUtils.degToRad(angle);
+                const axis = new THREE.Vector3(
+                    joint.axis[0],
+                    joint.axis[1],
+                    joint.axis[2]
+                ).normalize();
+                
+                const deltaQ = new THREE.Quaternion()
+                    .setFromAxisAngle(axis, radians);
+                
+                joint.object.quaternion
+                    .copy(joint.restQuaternion)
+                    .multiply(deltaQ);
+            });
+            
+            sliderItem.appendChild(label);
+            sliderItem.appendChild(slider);
+            legGroup.appendChild(sliderItem);
+        });
+        
+        container.appendChild(legGroup);
     }
-});
+}
+
+function updateSliderValues(angles) {
+    Object.entries(angles).forEach(([jointName, angle]) => {
+        const slider = document.getElementById(`slider-${jointName}`);
+        const valueSpan = document.getElementById(`value-${jointName}`);
+        
+        if (slider && valueSpan) {
+            slider.value = angle;
+            valueSpan.textContent = `${angle.toFixed(1)}°`;
+        }
+    });
+}
 
 // Initialize scene and load URDF on page load
 window.addEventListener('load', function() {
     initScene();
+    initPanelToggle();
     loadURDFFromURL(URDF_URL);
 });
