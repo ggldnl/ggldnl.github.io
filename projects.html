@@ -17,7 +17,6 @@
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="projects.html" class="active">Projects</a></li>
-                <li><a href="contact.html">Contact</a></li>
             </ul>
         </div>
     </nav>
@@ -37,9 +36,9 @@
                     important to democratize robotics, making these concepts more accessible to everyone.
                     -->
 
-                    A collection of my work in robotics, artificial intelligence, and mechanical design.
+                    A collection of my work in robotics and artificial intelligence.
                     All my projects are completely open source, designed to be easily replicated using
-                    off-the-shelf hardware and without the need for specialized machines. I believe this 
+                    off-the-shelf hardware and without the need for specialized machines. I believe this
                     approach is important to democratize robotics.
                 </p>
             </div>
@@ -55,11 +54,11 @@
                     <h3 class="project-title">Differential Drive Robot</h3>
                     <p class="project-description">
                         I wanted to deeply understand key concepts in mobile robotics and see how they translate
-                        into practice. Building a differential drive robot proved invaluable for this. 
-                        I explored closed-loop RPM control for motion regulation and a two-layer hardware 
-                        architecture designed to coordinate low-frequency heavy computations with low-level 
+                        into practice. Building a differential drive robot proved invaluable for this.
+                        I explored closed-loop RPM control for motion regulation and a two-layer hardware
+                        architecture designed to coordinate low-frequency heavy computations with low-level
                         near-real-time motor control and sensor readings.
-                        The project was also highly educational in terms of construction, 
+                        The project was also highly educational in terms of construction,
                         covering component selection, 3D printing, and PCB design.
                     </p>
                     <div class="project-tags">
@@ -72,64 +71,46 @@
             </a>
 
             <!-- Project 2 -->
-            <a href="projects/hexapod_dashboard/index.html" class="project-card">
-                <img src="projects/hexapod_dashboard/images/preview.jpg" alt="Hexapod Dashboard" class="project-image">
+            <a href="projects/hexapod/index.html" class="project-card">
+                <img src="projects/hexapod/images/preview.jpg" alt="Hexapod" class="project-image">
                 <div class="project-content">
-                    <div class="project-date">January 12, 2026</div>
-                    <h3 class="project-title">Hexapod Dashboard</h3>
+                    <div class="project-date">February 1, 2025</div>
+                    <h3 class="project-title">Hexapod</h3>
                     <p class="project-description">
-                        
+                        Fully open-source six-legged robot. The architecture uses a two-tier
+                        control scheme: a Raspberry Pi handles high-level tasks like inverse kinematics
+                        and trajectory planning, while a Servo2040 manages the hardware real-time.
+                        Communication between the boards uses a custom HDLC-based protocol.
                     </p>
                     <div class="project-tags">
-                        <span class="tag">3D Visualizer</span>
-                        <span class="tag">Dashboard</span>
+                        <span class="tag">Inverse kinematics</span>
+                        <span class="tag">Gait generation</span>
+                        <span class="tag">HDLC protocol</span>
+                        <span class="tag">Custom PCB</span>
                     </div>
                     <!-- <div class="read-time">12 min read</div> -->
                 </div>
             </a>
 
             <!-- Project 3 -->
-            <a href="projects/hexapod/index.html" class="project-card">
-                <img src="projects/hexapod/images/preview.jpg" alt="Hexapod" class="project-image">
+            <a href="projects/hexapod_dashboard/index.html" class="project-card">
+                <img src="projects/hexapod_dashboard/preview.jpg" alt="Hexapod Dashboard" class="project-image">
                 <div class="project-content">
-                    <div class="project-date">January 2, 2026</div>
-                    <h3 class="project-title">Hexapod</h3>
+                    <div class="project-date">January 20, 2026</div>
+                    <h3 class="project-title">Hexapod Dashboard</h3>
                     <p class="project-description">
-                        
+                        I built this web-based visualizer to monitor my hexapod robot.
+                        The application automatically loads the robot's URDF model and STL meshes
+                        directly from the robot's GitHub page. It lets you connects to the robot's
+                        telemetry server via WebSocket to stream joint angles, battery voltage and
+                        servo current draw. Once connected, the simulation robot will sync pose with
+                        the real one. The interface is intentionally minimal.
                     </p>
                     <div class="project-tags">
-                        <span class="tag">Hexapod</span>
-                        <span class="tag">Inverse kinematics</span>
-                        <span class="tag">Gait generation</span>
-                        <span class="tag">PCB design</span>
+                        <span class="tag">3D Viewer</span>
+                        <span class="tag">Dashboard</span>
                     </div>
-                    <!-- <div class="read-time">12 min read</div> -->
-                </div>
-            </a>
-
-            <!-- Project 4 -->
-            <a href="projects/scara/index.html" class="project-card">
-                <img src="projects/scara/images/preview.jpg" alt="SCARA" class="project-image">
-                <div class="project-content">
-                    <div class="project-date">October 10, 2025</div>
-                    <h3 class="project-title">SCARA</h3>
-                    <p class="project-description">
-                        Building a robot is truly the best ways to really understand robotics concepts. Studying how to
-                        derive the inverse kinematics, plan trajectories, defining a timing law and so on I remember
-                        asking myself: how do this stuff actually work in real life? Now that we have all the theory
-                        set up, how do we actually make the robot move and do what we want? This is the reason why I
-                        started developing my SCARA. I kept things simple from a control point of view (no fancy
-                        hardware) and this, together with a careful choice of mechanical components (low cost and
-                        off-the-shelf parts), resulted in the design of a low-cost, affordable, open-source desktop
-                        robot arm thought for people who, like me, want to get their hands dirty.
-                    </p>
-                    <div class="project-tags">
-                        <span class="tag">Robot arm</span>
-                        <span class="tag">Inverse kinematics</span>
-                        <span class="tag">Low cost</span>
-                        <span class="tag">Off-the-shelf hardware</span>
-                    </div>
-                    <!-- <div class="read-time">12 min read</div> -->
+                    <!-- <div class="read-time">13 min read</div> -->
                 </div>
             </a>
 

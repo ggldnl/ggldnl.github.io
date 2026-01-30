@@ -108,6 +108,14 @@ main {
     color: #999;
 }
 
+.hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;   /* fills the box, crops if needed */
+    border-radius: 8px;  /* match container */
+    display: block;
+}
+
 .hero-content {
     flex: 1;
 }

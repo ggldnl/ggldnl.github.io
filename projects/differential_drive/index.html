@@ -24,7 +24,6 @@
       <ul class="nav-links">
         <li><a href="../../index.html">Home</a></li>
         <li><a href="../../projects.html">Projects</a></li>
-        <li><a href="../../contact.html">Contact</a></li>
       </ul>
     </div>
   </nav>
@@ -79,7 +78,8 @@
 
         <p>
           I decided to go for the simplest mobile robot I could think of that is still of practical utility: a
-          <strong>differential drive robot</strong>. It follows the same kinematic model as a unicycle, which is the simplest model
+          <strong>differential drive robot</strong>. It follows the same kinematic model as a unicycle, which is the
+          simplest model
           that captures meaningful mobility, but is easier to build.
           <!--but it doesn't need additional control to stay upright, having a 
           three-point contact with the ground. -->
@@ -120,44 +120,51 @@
         -->
 
         <p>
-          The main focus of the project was to <strong>apply some theory and build a testbed for studying motion regulation</strong>.
+          The main focus of the project was to <strong>apply some theory and build a testbed for studying motion
+            regulation</strong>.
           Even two motors from the same manufacturer and production batch may behave differently — one might rotate
           faster than the other under the same voltage. Friction in gears, additional load, and wheel–ground interaction
-          introduce further disturbances that degrade motion accuracy. Open-loop control is not reliable under these conditions, 
+          introduce further disturbances that degrade motion accuracy. Open-loop control is not reliable under these
+          conditions,
           so I focused on closed-loop RPM regulation and related feedback strategies.
         </p>
 
         <p>
           This also tied into a broader architectural question. A professor once pointed out that effective robot design
-          often separates computation into two layers: a high-level stage for low-frequency, heavy tasks — planning, 
-          fiducial pose correction, and so on — and a low-level stage for motor control and sensor reading in near-real time.
-          I wanted to test this idea, so I used a Raspberry Pi for high-level logic and an Arduino Nano for low-level control.
-          In hindsight, this setup is limited. The upper layer is currently underused, and the lower layer lacks 
-          a real-time operating system, which leads to duty-cycle jitter and timing inconsistencies 
+          often separates computation into two layers: a high-level stage for low-frequency, heavy tasks — planning,
+          fiducial pose correction, and so on — and a low-level stage for motor control and sensor reading in near-real
+          time.
+          I wanted to test this idea, so I used a Raspberry Pi for high-level logic and an Arduino Nano for low-level
+          control.
+          In hindsight, this setup is limited. The upper layer is currently underused, and the lower layer lacks
+          a real-time operating system, which leads to duty-cycle jitter and timing inconsistencies
           that affect RPM estimates.
         </p>
 
         <p>
           This article provides an overview of the project, showing the design process from start to finish.
-          The robot is functional, but it is only a first iteration and will require extensive changes 
-          before becoming a solid platform for further work. 
+          The robot is functional, but it is only a first iteration and will require extensive changes
+          before becoming a solid platform for further work.
         </p>
 
         <h2 id="hardware">Hardware</h2>
 
         <p>
-          I started prototyping with this rig. You can see two different motor–encoder combinations because one of the goals
+          I started prototyping with this rig. You can see two different motor–encoder combinations because one of the
+          goals
           was to keep the design modular and not tied to any specific hardware. I tested the following:
 
-          <ul>
-            <li> A <strong>TT motor</strong> (the yellow one) with an infrared encoder mounted on the output shaft, after the reduction. 
-              It has low resolution (20 ticks per rotation) and thus high time delta between subsequent encoder pulses.
-            </li>
-            <li> A <strong>N20 motor</strong> with a magnetic encoder mounted on the motor shaft, before the reduction.
-              This has higher resolution (3 ticks per motor shaft rotation, with a 298:1 reduction, meaning we should see 894 ticks for a complete rotation of the output shaft),
-              and a much lower time delta between subsequent encoder pulses.
-            </li>
-          </ul>
+        <ul>
+          <li> A <strong>TT motor</strong> (the yellow one) with an infrared encoder mounted on the output shaft, after
+            the reduction.
+            It has low resolution (20 ticks per rotation) and thus high time delta between subsequent encoder pulses.
+          </li>
+          <li> A <strong>N20 motor</strong> with a magnetic encoder mounted on the motor shaft, before the reduction.
+            This has higher resolution (3 ticks per motor shaft rotation, with a 298:1 reduction, meaning we should see
+            894 ticks for a complete rotation of the output shaft),
+            and a much lower time delta between subsequent encoder pulses.
+          </li>
+        </ul>
         </p>
 
         <div class="media-container">
@@ -166,7 +173,7 @@
         </div>
 
         <p>
-          After making sure everything was working as intended I moved on to <strong>designing the PCB</strong>. 
+          After making sure everything was working as intended I moved on to <strong>designing the PCB</strong>.
         </p>
 
         <div class="media-container">
@@ -189,12 +196,13 @@
             An Arduino Nano handles the low level stuff (controlling the motors, reading encoders and sensors, ...).
           </li>
           <li>
-            A Raspberry Pi Zero can act as a high-level node in a larger system, receiving messages from external processes 
+            A Raspberry Pi Zero can act as a high-level node in a larger system, receiving messages from external
+            processes
             and sending commands to the Arduino.
           </li>
           <li>
             The DRV8833 is an H-bridge. An H-bridge allows a DC motor to be driven in both forward and reverse
-            directions by switching the polarity of the voltage applied to the motor. The DRV8833 in particular 
+            directions by switching the polarity of the voltage applied to the motor. The DRV8833 in particular
             supports variable speed both formward and backwards when a PWM signal is used.
           </li>
           <li>
@@ -204,9 +212,9 @@
           </li>
           <li>
             UART is used to let the Arduino (low level) and Raspberry (high level) send messages back and forth. The
-            UART is a common serial communication protocol that uses pins VCC, GND, RX (receive data pin) and TX 
-            (transmit data pin). The problem in my case was that the Arduino uses 5V logic while the Raspberry Pi 
-            uses 3.3V logic. I used the two resistors R1 and R2 to implement a voltage divider to bring the voltage 
+            UART is a common serial communication protocol that uses pins VCC, GND, RX (receive data pin) and TX
+            (transmit data pin). The problem in my case was that the Arduino uses 5V logic while the Raspberry Pi
+            uses 3.3V logic. I used the two resistors R1 and R2 to implement a voltage divider to bring the voltage
             from the two devices on the same level.
           </li>
         </ul>
@@ -224,10 +232,11 @@
             I specifically thought about a shift register because one of the things I wanted to experiment with was
             integrating ToF sensors and using them for mapping instead of a LIDAR.
             The sensors I had work with I2C but they share the same address. In order to use one of them
-            I had to enable it (pulling the enable pin high), assign a unique address and disable it again 
+            I had to enable it (pulling the enable pin high), assign a unique address and disable it again
             (pulling the enable pin low) at startup.
             A shift register would have been just what I needed, as it lets me control up to 8 new digital outputs. I
-            successfully tested this idea to drive 8 LEDs and I wrote a simple library to interface with the shift register,
+            successfully tested this idea to drive 8 LEDs and I wrote a simple library to interface with the shift
+            register,
             which I'll include in the GitHub repository even though it is not currently used in the code.
           </li>
         </ul>
@@ -241,8 +250,8 @@
               href="https://it.aliexpress.com/item/1005007467083035.html?spm=a2g0o.order_list.order_list_main.5.65323696ndnfoV&gatewayAdapt=glo2ita">
               ZMR 8A Dual BEC</a>.
             I ordered it from Aliexpress for a few bucks. The documentation is very sketchy and I didn't find much on
-            the internet about it. I bought it because it features two independent outputs with a voltage selector. 
-            This way we can power the motors at 6V and the other electronics at 5V. I had to remove the top cover 
+            the internet about it. I bought it because it features two independent outputs with a voltage selector.
+            This way we can power the motors at 6V and the other electronics at 5V. I had to remove the top cover
             and the outer insulation film and to replace the connector and the switch.
           </li>
           <li>
@@ -275,12 +284,13 @@
         <p>
           I printed the rest of the structure in Matte Black PLA and the wheels in TPU to add extra grippyness
           even though it wasn't as grippy as I hoped for. I used M2 heat set inserts and screws to
-          mount everything. The wheels are just press fitted on the motor shaft and I used an M3 washer on each to separate them
+          mount everything. The wheels are just press fitted on the motor shaft and I used an M3 washer on each to
+          separate them
           from the mounting bracket. Mounting batteries is always tricky: in this case I used velcro tape to secure it.
         </p>
 
         <p>
-          Another aspect worth mentioning is the caster wheel. I used a 10mm diameter metal ball that I had lying around 
+          Another aspect worth mentioning is the caster wheel. I used a 10mm diameter metal ball that I had lying around
           and I printed a mount that allows it to spin more or less freely.
         </p>
 
@@ -358,37 +368,42 @@
             href="https://www.aboutamazon.com/news/operations/10-years-of-amazon-robotics-how-robots-help-sort-packages-move-product-and-improve-safety">
             KIVA/Hercules</a>
           used by Amazon) and I can only dream of that level of precision. As far as my understanding goes, industrial
-          robots doesn’t just rely on better (and more expensive) hardware than mine. They typically have a hierarchical 
-          control architecture: 
+          robots doesn’t just rely on better (and more expensive) hardware than mine. They typically have a hierarchical
+          control architecture:
         </p>
 
         <ul>
           <li>
-            A motor-level control, usually handled by the motor driver, closes high-frequency current and velocity 
-            loops around the motor, making them behave as ideal torque or velocity sources and compensating for 
+            A motor-level control, usually handled by the motor driver, closes high-frequency current and velocity
+            loops around the motor, making them behave as ideal torque or velocity sources and compensating for
             hardware differences or nonlinearities.
           </li>
           <li>
-            A robot-level control, commands desired wheel velocities to follow precise trajectories using model-based control, 
-            sensor fusion, and state observers (e.g., Kalman filters) to correct for drift, wheel slip, and disturbances.
+            A robot-level control, commands desired wheel velocities to follow precise trajectories using model-based
+            control,
+            sensor fusion, and state observers (e.g., Kalman filters) to correct for drift, wheel slip, and
+            disturbances.
           </li>
         </ul>
 
         <p>
-          To keep the system simple I discarded the (hardware) current and voltage loops 
-          and <strong>implemented a single high-level (software) velocity control loop around each motor</strong> using encoder feedback. 
-          Each wheel’s speed is regulated by a PID controller, and the raw RPM readings are smoothed using a 
+          To keep the system simple I discarded the (hardware) current and voltage loops
+          and <strong>implemented a single high-level (software) velocity control loop around each motor</strong> using
+          encoder feedback.
+          Each wheel’s speed is regulated by a PID controller, and the raw RPM readings are smoothed using a
           1D Kalman filter for noise reduction and improved estimation stability.
         </p>
 
         <p>
-            The <strong>PID is one of the most common and effective feedback control strategies</strong> in robotics. 
-            In this case, it continuously adjusts the motor command based on the difference between the desired 
-            and measured wheel speeds. It combines three simple control actions:
+          The <strong>PID is one of the most common and effective feedback control strategies</strong> in robotics.
+          In this case, it continuously adjusts the motor command based on the difference between the desired
+          and measured wheel speeds. It combines three simple control actions:
         </p>
         <ul>
-          <li>Proportional (P): reacts directly to the current error (setpoint - measurement), provides immediate correction.</li>
-          <li>Integral (I): accounts for the accumulated error over time, eliminating steady biases and driving the long-term error to zero.</li>
+          <li>Proportional (P): reacts directly to the current error (setpoint - measurement), provides immediate
+            correction.</li>
+          <li>Integral (I): accounts for the accumulated error over time, eliminating steady biases and driving the
+            long-term error to zero.</li>
           <li>Derivative (D): anticipates the trend of the error, damping overshoots and oscillations.</li>
         </ul>
 
@@ -408,31 +423,39 @@
         </a>
 
         <p>
-          In addition to the feedback control I considered using a <strong>feedforward term</strong> to anticipate the required motor command
-          based on the desired velocity. This should act as a baseline estimate of the control signal for a given target RPM. 
-          Without feedforward, when a new speed command is issued, the initial error is large and the controller outputs 
-          a very high command (often near saturation), causing the motor to accelerate too aggressively before settling. 
+          In addition to the feedback control I considered using a <strong>feedforward term</strong> to anticipate the
+          required motor command
+          based on the desired velocity. This should act as a baseline estimate of the control signal for a given target
+          RPM.
+          Without feedforward, when a new speed command is issued, the initial error is large and the controller outputs
+          a very high command (often near saturation), causing the motor to accelerate too aggressively before settling.
           Feedforward mitigates this by providing a more balanced and predictable response.
         </p>
-        
+
         <p>
-          The encoder readings used to measure wheel speed are often noisy because of vibration, quantization, and small mechanical imperfections. 
-          To get a cleaner and more reliable value, I used a <strong>1D Kalman filter</strong>. 
-          This filter takes both the current RPM measurement and the previous estimate into account, weighing how much it trusts each based on their expected accuracy. 
-          As a result, it smooths out sudden spikes or drops in the readings while still reacting quickly to real changes in speed. 
-          The filtered RPM is then sent to the PID controller, giving it a more stable and realistic signal to work with.
+          The encoder readings used to measure wheel speed are often noisy because of vibration, quantization, and small
+          mechanical imperfections.
+          To get a cleaner and more reliable value, I used a <strong>1D Kalman filter</strong>.
+          This filter takes both the current RPM measurement and the previous estimate into account, weighing how much
+          it trusts each based on their expected accuracy.
+          As a result, it smooths out sudden spikes or drops in the readings while still reacting quickly to real
+          changes in speed.
+          The filtered RPM is then sent to the PID controller, giving it a more stable and realistic signal to work
+          with.
         </p>
 
         <div class="media-container">
           <img src="images/kalman_1.png" alt="1D Kalman filter" class="article-image zoomable">
           <p class="image-caption">1D Kalman filter</p>
         </div>
-        
+
         <p>
           Here’s the <strong>final control architecture</strong>. Each wheel has its own loop, so both are regulated
           independently using the same structure. The input is the desired RPM we want the motor to achieve. The
-          controller produces a control signal (also in RPM) that is sent to the motor. Dedicated software translates RPM to PWM
-          for the motor driver. The encoder reading is used to measure the actual RPM the motor is spinning, the filtered result 
+          controller produces a control signal (also in RPM) that is sent to the motor. Dedicated software translates
+          RPM to PWM
+          for the motor driver. The encoder reading is used to measure the actual RPM the motor is spinning, the
+          filtered result
           is fed back to the controller as a reference for the next iteration.
         </p>
 
@@ -443,10 +466,11 @@
 
         <h2 id="software">Software</h2>
 
-          <p>
-            The Arduino receives commands through UART from the Raspberry, parses them and controls the hardware accordingly.
-            This is the code that handles that part:
-          </p>
+        <p>
+          The Arduino receives commands through UART from the Raspberry, parses them and controls the hardware
+          accordingly.
+          This is the code that handles that part:
+        </p>
 
         <pre><code class="language-cpp">
 // Read linear and angular velocities from UART (format: "linear,angular\n")
@@ -462,19 +486,22 @@ if (Serial.available()) {
         </code></pre>
 
         <p>
-          The rest of the firmware is structured around a few key components. All are designed to be modular and reusable:
+          The rest of the firmware is structured around a few key components. All are designed to be modular and
+          reusable:
         </p>
 
         <ul>
 
           <li>
             The <strong>encoder</strong> library provides support for different kinds of encoders:
-            high-resolution (e.g. on motor shaft, before reduction) and low-resolution (e.g. on gearbox output shaft, afer reduction).
+            high-resolution (e.g. on motor shaft, before reduction) and low-resolution (e.g. on gearbox output shaft,
+            afer reduction).
             I'll talk a bit more on this in the following section.
           </li>
 
           <li>
-            The <strong>motor</strong> library controls the DRV8833 H-bridge. It exposes methods to coast, brake, and drive the motor 
+            The <strong>motor</strong> library controls the DRV8833 H-bridge. It exposes methods to coast, brake, and
+            drive the motor
             at a given normalized speed (float in range -1 to 1). PWM signals allow speed control.
 
             <pre><code class="language-cpp">
@@ -489,7 +516,7 @@ motor.drive(0.8f);
           </li>
 
           <li>
-            The <strong>PID</strong> library provides the implementation for a PID controller. 
+            The <strong>PID</strong> library provides the implementation for a PID controller.
             <pre><code class="language-cpp">
 const float kp = 0.1;
 const float ki = 0.1;
@@ -535,7 +562,8 @@ while (condition) {
           </li>
 
           <li>
-            A <strong>DriveUnit</strong> object represents an actuated wheel. It bundles a motor, encoder, PID controller and Kalman filter.
+            A <strong>DriveUnit</strong> object represents an actuated wheel. It bundles a motor, encoder, PID
+            controller and Kalman filter.
             During each control cycle, it:
             <ol>
               <li>Measures the current wheel RPM using the encoder</li>
@@ -571,7 +599,9 @@ while (condition) {
         <h3>Encoder Implementation</h3>
 
         <p>
-        Encoder pulses can occur at high frequency, especially for high-resolution encoders mounted on the motor shaft. Polling them in the main loop would lead to missed ticks. Each encoder should be updated inside an interrupt service routine (ISR) that triggers on encoder signal rising edge.
+          Encoder pulses can occur at high frequency, especially for high-resolution encoders mounted on the motor
+          shaft. Polling them in the main loop would lead to missed ticks. Each encoder should be updated inside an
+          interrupt service routine (ISR) that triggers on encoder signal rising edge.
         </p>
 
         <p>The standard pattern for creating and updating an encoder looks like this:</p>
@@ -586,26 +616,31 @@ attachInterrupt(digitalPinToInterrupt(pin), encoderISR, RISING);
         </code></pre>
 
         <p>
-        However, this approach requires manually declaring the ISR function and attaching it to the pin every time an encoder is created. To make the encoder setup more user-friendly and reduce the amount of code one should write, I used a static interrupt pattern. This means a predefined number of encoder instances are created and each one has a dedicated static ISR that references the correct encoder object.
+          However, this approach requires manually declaring the ISR function and attaching it to the pin every time an
+          encoder is created. To make the encoder setup more user-friendly and reduce the amount of code one should
+          write, I used a static interrupt pattern. This means a predefined number of encoder instances are created and
+          each one has a dedicated static ISR that references the correct encoder object.
         </p>
 
         <p>
-        This is how instantiation looks with the static ISR pattern:
+          This is how instantiation looks with the static ISR pattern:
         </p>
-       <pre><code class="language-cpp">
+        <pre><code class="language-cpp">
 Encoder encoder(pin);
         </code></pre>
 
         <p>
-        This design allows to instantiate an encoder once and forget about ISR setup (handled automatically). Interrupt management is isolated inside the Encoder class.
+          This design allows to instantiate an encoder once and forget about ISR setup (handled automatically).
+          Interrupt management is isolated inside the Encoder class.
         </p>
 
         <p>
-        The trade-off is that some configuration must be hardcoded at compile time (the number of supported encoders).
+          The trade-off is that some configuration must be hardcoded at compile time (the number of supported encoders).
         </p>
 
         <p>
-        The Arduino Nano only has 2 interrupt capable pins, so it was unnecessary to support more encoders via software. If you want to support more encoders, you can change this part of the code:
+          The Arduino Nano only has 2 interrupt capable pins, so it was unnecessary to support more encoders via
+          software. If you want to support more encoders, you can change this part of the code:
         </p>
         <pre><code class="language-cpp">
 // encoder.hpp
@@ -613,7 +648,7 @@ static Encoder* _instances[2]; // support 2 encoders
 
 // encoder.cpp
 Encoder* Encoder::_instances[2] = {nullptr, nullptr};
-        </code></pre> 
+        </code></pre>
 
         <p>
           Another aspect worth mentioning is the fact that each encoder has two modes: Count Mode and Period Mode.
@@ -621,8 +656,10 @@ Encoder* Encoder::_instances[2] = {nullptr, nullptr};
 
         <ul>
           <li>
-            <strong>Count Mode</strong> is designed for high-resolution encoders mounted directly on the motor shaft. In this case the time between
-            two subsequent pulses is very short and we must measure the speed by counting the number of ticks over a fixed
+            <strong>Count Mode</strong> is designed for high-resolution encoders mounted directly on the motor shaft. In
+            this case the time between
+            two subsequent pulses is very short and we must measure the speed by counting the number of ticks over a
+            fixed
             time window. The RPM is computed as:
             <pre><code class="language-cpp">
 float computeCountMode(long deltaTicks, long deltaTime, int ticksPerRev) {
@@ -631,9 +668,11 @@ float computeCountMode(long deltaTicks, long deltaTime, int ticksPerRev) {
             </code></pre>
           </li>
           <li>
-            <strong>Period Mode</strong> is designed for low-resolution encoders, typically mounted on the gearbox ouput shaft, after the reduction.
-            In this scenario tick intervals are longer and counting over time would lead to poor precision. Instead of counting ticks 
-            we measure the time between consecutive pulses, from which the RPM is derived as: 
+            <strong>Period Mode</strong> is designed for low-resolution encoders, typically mounted on the gearbox ouput
+            shaft, after the reduction.
+            In this scenario tick intervals are longer and counting over time would lead to poor precision. Instead of
+            counting ticks
+            we measure the time between consecutive pulses, from which the RPM is derived as:
             <pre><code class="language-cpp">
 float computePeriodMode(float tickIntervalMicros, int ticksPerRev) {
   return (60.0f * 1000000.0f) / (tickIntervalMicros * ticksPerRev);
@@ -659,7 +698,8 @@ float computePeriodMode(float tickIntervalMicros, int ticksPerRev) {
         <a class="link-banner" href="https://github.com/ggldnl/Differential-Drive-Controller" target="_blank">
           <div class="banner-content">
             <div class="banner-title">ggldnl / Differential-Drive-Controller</div>
-            <div class="banner-description">Repository containing the Arduino code for my Differential Drive robot.</div>
+            <div class="banner-description">Repository containing the Arduino code for my Differential Drive robot.
+            </div>
             <!-- <div class="banner-meta">GitHub • Open Source</div> -->
           </div>
           <div class="banner-thumb">
@@ -675,8 +715,8 @@ float computePeriodMode(float tickIntervalMicros, int ticksPerRev) {
         </p>
 
         <div class="media-container">
-          <img src="images/comparison_control_loop.gif"
-            alt="Robot performaces, with and without inner control loops" class="article-image zoomable">
+          <img src="images/comparison_control_loop.gif" alt="Robot performaces, with and without inner control loops"
+            class="article-image zoomable">
           <p class="image-caption">Robot performaces, with and without control loops</p>
         </div>
 
@@ -686,8 +726,10 @@ float computePeriodMode(float tickIntervalMicros, int ticksPerRev) {
 
         <ul>
           <li>
-            The robot goes forward in a straight line but eventually <strong>small errors accumulate</strong>, causing it to drift off
-            track. This is not a big deal as we should be able to compensate for small inaccuracies with pose-correction techniques.
+            The robot goes forward in a straight line but eventually <strong>small errors accumulate</strong>, causing
+            it to drift off
+            track. This is not a big deal as we should be able to compensate for small inaccuracies with pose-correction
+            techniques.
           </li>
           <li>
             It's a bit difficult to see in the gif but <strong>the motion is quite jerky</strong>.
@@ -695,16 +737,20 @@ float computePeriodMode(float tickIntervalMicros, int ticksPerRev) {
         </ul>
 
         <p>
-          That little zig-zag motion is a classic effect when two wheels are controlled independently. Each wheel’s PID controller only sees
-          its own measurement and reacts locally, so the corrections happen at slightly different times and magnitudes. 
-          On top of that, encoder quantization and other unwanted effects make the control inputs jumpy. 
-          Those small, asynchronous corrections adds up and the result is a wiggly, zig-zag path instead of a perfectly smooth line.
+          That little zig-zag motion is a classic effect when two wheels are controlled independently. Each wheel’s PID
+          controller only sees
+          its own measurement and reacts locally, so the corrections happen at slightly different times and magnitudes.
+          On top of that, encoder quantization and other unwanted effects make the control inputs jumpy.
+          Those small, asynchronous corrections adds up and the result is a wiggly, zig-zag path instead of a perfectly
+          smooth line.
           I'm not sure how to solve this problem, but I think the result obtained is satisfactory for now.
         </p>
 
         <p>
-          Another problem is the transient i.e. the time we need to wait for the PID to make che controlled variable converge to the setpoint.
-          During this time the speed is still adjusting and it's difficult to know how much the respective wheel has turned. This can be solved by either
+          Another problem is the transient i.e. the time we need to wait for the PID to make che controlled variable
+          converge to the setpoint.
+          During this time the speed is still adjusting and it's difficult to know how much the respective wheel has
+          turned. This can be solved by either
           spending more money for better hardware or by tuning the PID better (to be more reactive).
         </p>
         <div class="media-container">

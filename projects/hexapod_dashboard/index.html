@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio - Hexapod Dashboard</title>
+
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs/themes/prism.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-clike.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-c.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-cpp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-python.min.js"></script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="logo">Portfolio</a>
+            <ul class="nav-links">
+                <li><a href="../../index.html">Home</a></li>
+                <li><a href="../../projects.html">Projects</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+
+            <!-- Project Header -->
+            <header class="project-header">
+                <div class="project-date">January 20, 2026</div>
+                <h1 class="project-title">Hexapod Dashboard</h1>
+                <div class="project-tags">
+                    <span class="tag">3D Viewer</span>
+                    <span class="tag">Dashboard</span>
+                </div>
+            </header>
+
+            <!--
+            <div class="media-container">
+                <img src="images/preview.jpg" alt="Hexapod" class="article-image zoomable">
+                <p class="image-caption">The completed hexapod</p>
+            </div>
+            -->
+
+            <!-- Article Content -->
+            <article class="article-content">
+                <h2 id="overview">Project Overview</h2>
+                <p>
+                    Work in progress. Check out the github page:
+                </p>
+
+                <a class="link-banner" href="https://github.com/ggldnl/Hexapod-Dashboard" target="_blank">
+                    <div class="banner-content">
+                        <div class="banner-title">ggldnl / Hexapod-Dashboard</div>
+                        <div class="banner-description">Web-based dashboard to interface with my Hexapod robot</div>
+                    </div>
+                    <div class="banner-thumb">
+                        <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+                            alt="Project github thumbnail">
+                    </div>
+                </a>
+
+                <p>
+                    And a simpler web viewer hosted on github pages:
+                </p>
+
+                <a class="link-banner" href="https://ggldnl.github.io/projects/hexapod_dashboard/dashboard/index.html" target="_blank">
+                    <div class="banner-content">
+                        <div class="banner-title">Web dashboard</div>
+                        <div class="banner-description">Web-based dashboard to interface with my Hexapod robot</div>
+                    </div>
+                    <div class="banner-thumb" style="background: #e8d5e8;">
+                    </div>
+                </a>
+            </article>
+        </div>
+    </main>
+
+    <script src="../../assets/js/scripts.js"></script>
+
+    <!-- Zoom overlay -->
+    <div class="zoom-overlay" id="zoomOverlay">
+        <div class="zoom-close" id="zoomClose">&times;</div>
+        <img class="zoom-image" id="zoomImage" src="" alt="">
+    </div>
+
+</body>
+
+</html>
