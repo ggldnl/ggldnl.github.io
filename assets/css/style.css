@@ -96,6 +96,13 @@ main {
     min-height: 500px;
 }
 
+.hero-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 80px;
+    min-height: 500px;
+}
+
 .hero-image {
     flex: 0 0 300px;
     height: 300px;
